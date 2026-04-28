@@ -1,5 +1,5 @@
-import { Channel } from "../../types/channel";
-import { User } from "../../types/user";
+import type { Channel } from "../../types/channel";
+import type { User } from "../../types/user";
 import { ChannelItem } from "../ChannelItem/ChannelItem";
 import "./ChannelList.css";
 

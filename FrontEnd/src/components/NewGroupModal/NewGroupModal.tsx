@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { User } from "../../types/user";
+import type { User } from "../../types/user";
 import { UserPicker } from "../UserPicker/UserPicker";
 import "./NewGroupModal.css";
 

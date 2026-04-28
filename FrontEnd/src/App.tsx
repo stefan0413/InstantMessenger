@@ -4,23 +4,43 @@ import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import { NewGroupModal } from "./components/NewGroupModal/NewGroupModal";
 import { currentUserId, mockUsers } from "./data/mockUsers";
 import { getChannels } from "./services/channelsService";
-import { Channel } from "./types/channel";
-import { Message } from "./types/message";
+import type { Channel } from "./types/channel";
+import type { Message } from "./types/message";
+import LoginForm from "./features/auth/components/LoginForm";
+import RegisterForm from "./features/auth/components/RegisterForm";
+import UserStatus from "./features/auth/components/UserStatus";
+import { useAuth } from "./features/auth/context/AuthContext";
 
 function App() {
+  const { isAuthenticated } = useAuth();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannelId, setActiveChannelId] = useState<string>();
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     getChannels().then((data) => {
       setChannels(data);
       setActiveChannelId(data[0]?.id);
       setLoading(false);
     });
-  }, []);
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return (
+      <div>
+        <UserStatus />
+        <hr />
+        <button onClick={() => setAuthMode("login")}>Login</button>
+        <button onClick={() => setAuthMode("register")}>Register</button>
+        <hr />
+        {authMode === "login" ? <LoginForm /> : <RegisterForm />}
+      </div>
+    );
+  }
 
   const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -96,6 +116,7 @@ function App() {
 
   return (
     <>
+      <UserStatus />
       <div className="app-shell">
         <ChannelList
           channels={filteredChannels}

@@ -1,5 +1,5 @@
-import { Message } from "../../types/message";
-import { User } from "../../types/user";
+import type { Message } from "../../types/message";
+import type { User } from "../../types/user";
 import "./MessageBubble.css";
 
 interface MessageBubbleProps {

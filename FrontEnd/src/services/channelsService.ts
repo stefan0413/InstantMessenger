@@ -1,5 +1,5 @@
 import { mockChannels } from "../data/mockChannels";
-import { Channel } from "../types/channel";
+import type { Channel } from "../types/channel";
 
 export async function getChannels(): Promise<Channel[]> {
   return new Promise((resolve) => {
