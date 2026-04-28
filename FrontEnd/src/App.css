@@ -1,38 +1,81 @@
-.App {
-  text-align: center;
+* {
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  background: #f5f6fa;
+  color: #111827;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+button,
+input {
+  font: inherit;
 }
 
-.App-header {
-  background-color: #282c34;
+#root {
   min-height: 100vh;
+}
+
+.app-shell {
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  height: min(900px, calc(100vh - 32px));
+  margin: 16px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 28px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+}
+
+.app-loading {
+  align-items: center;
+  color: #6b7280;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 14px;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  min-height: 100vh;
 }
 
-.App-link {
-  color: #61dafb;
+.app-loading__pulse {
+  animation: pulse 1.2s ease-in-out infinite;
+  background: #4f46e5;
+  border-radius: 50%;
+  height: 38px;
+  width: 38px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.85);
   }
-  to {
-    transform: rotate(360deg);
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: calc(100vh - 20px);
+    margin: 10px;
+  }
+
+  .channel-list {
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 0;
+    max-height: 420px;
+  }
+
+  .chat-window {
+    min-height: 560px;
   }
 }

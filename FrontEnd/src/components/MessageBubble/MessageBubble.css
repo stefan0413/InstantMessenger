@@ -1,0 +1,58 @@
+.message-bubble {
+  align-items: flex-end;
+  display: flex;
+  gap: 9px;
+  max-width: 78%;
+}
+
+.message-bubble--mine {
+  align-self: flex-end;
+  justify-content: flex-end;
+}
+
+.message-bubble__avatar {
+  border-radius: 50%;
+  height: 30px;
+  object-fit: cover;
+  width: 30px;
+}
+
+.message-bubble__body {
+  background: #f1f5f9;
+  border-radius: 18px 18px 18px 6px;
+  color: #111827;
+  padding: 10px 13px 8px;
+}
+
+.message-bubble--mine .message-bubble__body {
+  background: #4f46e5;
+  border-radius: 18px 18px 6px 18px;
+  color: #ffffff;
+}
+
+.message-bubble__sender {
+  color: #6b7280;
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.message-bubble p {
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.message-bubble time {
+  color: #94a3b8;
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+.message-bubble--mine time {
+  color: rgba(255, 255, 255, 0.72);
+  text-align: right;
+}
