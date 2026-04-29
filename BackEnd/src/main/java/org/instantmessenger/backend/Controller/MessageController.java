@@ -26,11 +26,11 @@ public class MessageController {
     @PostMapping
     public void sendMessage(@RequestBody MessageRequest request) {
 
-        Message message = new Message();
-        message.setContent(request.content());
-        message.setUserId(request.userId());
-        message.setChannelId(request.channelId());
-        message.setTimestamp(LocalDateTime.now());
+        Message message = new Message(null,
+                request.content(),
+                request.userId(),
+                request.channelId(),
+                LocalDateTime.now());
 
         repo.save(message);
     }
