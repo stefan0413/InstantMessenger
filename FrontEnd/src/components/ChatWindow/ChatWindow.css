@@ -1,0 +1,135 @@
+.chat-window {
+  background: #ffffff;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+}
+
+.chat-window--empty {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.chat-window--empty h2 {
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.chat-window--empty p {
+  color: #6b7280;
+  margin: 0;
+}
+
+.chat-window__header {
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  gap: 13px;
+  min-width: 0;
+  padding: 18px 24px;
+}
+
+.chat-window__avatar {
+  height: 46px;
+  position: relative;
+  width: 46px;
+  flex: 0 0 auto;
+}
+
+.chat-window__avatar img {
+  border-radius: 50%;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.chat-window__avatar span {
+  background: #22c55e;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  bottom: 1px;
+  height: 12px;
+  position: absolute;
+  right: 0;
+  width: 12px;
+}
+
+.chat-window__avatar--group {
+  background: #e0e7ff;
+  border-radius: 50%;
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  overflow: hidden;
+  padding: 2px;
+}
+
+.chat-window__header h2 {
+  color: #111827;
+  font-size: 18px;
+  line-height: 1.2;
+  margin: 0 0 4px;
+}
+
+.chat-window__header p {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0;
+}
+
+.chat-window__messages {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px;
+}
+
+.chat-window__composer {
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.chat-window__composer input {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  color: #111827;
+  flex: 1;
+  font-size: 14px;
+  min-width: 0;
+  outline: none;
+  padding: 13px 17px;
+  transition: border 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.chat-window__composer input:focus {
+  background: #ffffff;
+  border-color: #a5b4fc;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+}
+
+.chat-window__composer button {
+  background: #4f46e5;
+  border: 0;
+  border-radius: 999px;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 12px 18px;
+}
+
+.chat-window__composer button:disabled {
+  background: #c7d2fe;
+  cursor: not-allowed;
+}
