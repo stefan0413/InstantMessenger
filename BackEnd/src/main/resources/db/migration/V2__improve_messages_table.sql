@@ -1,0 +1,2 @@
+ALTER TABLE messages
+    ALTER COLUMN timestamp SET DEFAULT NOW();

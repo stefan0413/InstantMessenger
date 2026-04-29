@@ -25,13 +25,6 @@ public class MessageController {
 
     @PostMapping
     public void sendMessage(@RequestBody MessageRequest request) {
-
-        Message message = new Message(null,
-                request.content(),
-                request.userId(),
-                request.channelId(),
-                LocalDateTime.now());
-
-        repo.save(message);
+        repo.save(request);
     }
 }
