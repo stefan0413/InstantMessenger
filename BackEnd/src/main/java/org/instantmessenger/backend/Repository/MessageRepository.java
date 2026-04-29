@@ -1,11 +1,14 @@
 package org.instantmessenger.backend.Repository;
 
+import org.instantmessenger.backend.DTO.MessageRequest;
 import org.instantmessenger.backend.Model.Message;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class MessageRepository {
@@ -26,13 +29,25 @@ public class MessageRepository {
         );
     }
 
-    public void save(Message message) {
-        jdbc.update(
-                "INSERT INTO messages (content, user_id, channel_id, time) VALUES (?, ?, ?, ?)",
-                message.content(),
-                message.userId(),
-                message.channelId(),
-                Timestamp.valueOf(message.time())
-        );
+    public Message getByIdOrElseThrow(long id){
+        return getById(id).orElseThrow();
+    }
+
+    public Optional<Message> getById(long id){
+        var message = jdbc.query("SELECT * FROM messages WHERE id = ?",
+                ROW_MAPPER,
+                id);
+
+        return message.stream().findFirst();
+    }
+
+    public long save(MessageRequest request) {
+        var keyholder = new GeneratedKeyHolder();
+        jdbc.update("INSERT INTO messages (content, user_id, channel_id) VALUES (?, ?, ?)",
+                request.content(),
+                request.userId(),
+                keyholder);
+
+        return keyholder.getKey().longValue();
     }
 }

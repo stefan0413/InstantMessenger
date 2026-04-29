@@ -27,4 +27,13 @@ public class ChannelRepository {
     public List<Channel> findAll() {
         return jdbc.query("SELECT * FROM channels", ROW_MAPPER);
     }
+
+    public boolean existsById(Long id) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM channels WHERE id = ?",
+                Integer.class,
+                id
+        );
+        return count != null && count > 0;
+    }
 }
