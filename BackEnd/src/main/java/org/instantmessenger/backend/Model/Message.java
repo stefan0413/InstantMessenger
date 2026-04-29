@@ -1,4 +1,6 @@
-package org.instantmessenger.backend.model;
+package org.instantmessenger.backend.Model;
 
-public class Message {
+import java.time.LocalDateTime;
+
+public record Message (long id, String content, long userId, long channelId, LocalDateTime time) {
 }
