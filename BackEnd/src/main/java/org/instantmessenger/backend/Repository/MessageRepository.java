@@ -16,29 +16,23 @@ public class MessageRepository {
         this.jdbc = jdbc;
     }
 
+    private static final MessageRowMapper ROW_MAPPER = new MessageRowMapper();
+
     public List<Message> findByChannelId(Long channelId) {
         return jdbc.query(
                 "SELECT * FROM messages WHERE channel_id = ?",
-                (rs, rowNum) -> {
-                    Message m = new Message();
-                    m.setId(rs.getLong("id"));
-                    m.setContent(rs.getString("content"));
-                    m.setUserId(rs.getLong("user_id"));
-                    m.setChannelId(rs.getLong("channel_id"));
-                    m.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
-                    return m;
-                },
+                ROW_MAPPER,
                 channelId
         );
     }
 
     public void save(Message message) {
         jdbc.update(
-                "INSERT INTO messages (content, user_id, channel_id, timestamp) VALUES (?, ?, ?, ?)",
-                message.getContent(),
-                message.getUserId(),
-                message.getChannelId(),
-                Timestamp.valueOf(message.getTimestamp())
+                "INSERT INTO messages (content, user_id, channel_id, time) VALUES (?, ?, ?, ?)",
+                message.content(),
+                message.userId(),
+                message.channelId(),
+                Timestamp.valueOf(message.time())
         );
     }
 }
