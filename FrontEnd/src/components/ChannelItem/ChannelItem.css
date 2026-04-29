@@ -1,0 +1,125 @@
+.channel-item {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.channel-item:hover {
+  background: #f8fafc;
+}
+
+.channel-item--active {
+  background: #eef2ff;
+}
+
+.channel-item--active:hover {
+  background: #eef2ff;
+}
+
+.channel-item__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.channel-item__avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+  display: block;
+}
+
+.channel-item__avatar--group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2px;
+  overflow: hidden;
+  background: #e0e7ff;
+  padding: 2px;
+}
+
+.channel-item__avatar--group img {
+  border-radius: 50%;
+}
+
+.channel-item__avatar--group img:first-child {
+  grid-row: span 2;
+}
+
+.channel-item__online {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #ffffff;
+  position: absolute;
+  right: 1px;
+  bottom: 2px;
+}
+
+.channel-item__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.channel-item__topline,
+.channel-item__bottomline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.channel-item__name {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channel-item__time {
+  color: #9ca3af;
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+
+.channel-item__last {
+  color: #6b7280;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channel-item__type {
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 5px 7px;
+  text-transform: uppercase;
+  flex: 0 0 auto;
+}
+
+.channel-item__type--direct {
+  background: #ecfeff;
+  color: #0891b2;
+}
+
+.channel-item__type--group {
+  background: #ede9fe;
+  color: #6d28d9;
+}
