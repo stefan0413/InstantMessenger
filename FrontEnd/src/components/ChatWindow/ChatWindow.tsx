@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Channel } from "../../types/channel";
 import { User } from "../../types/user";
 import { MessageBubble } from "../MessageBubble/MessageBubble";
@@ -12,11 +12,15 @@ interface ChatWindowProps {
 
 export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowProps) {
   const [messageText, setMessageText] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const participants = activeChannel
     ? users.filter((user) => activeChannel.participantIds.includes(user.id))
     : [];
-  const directUser = participants.find((user) => user.name !== "You");
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView();
+  }, [activeChannel?.id, activeChannel?.messages.length]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -46,21 +50,21 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
       <header className="chat-window__header">
         <div className={`chat-window__avatar ${activeChannel.type === "group" ? "chat-window__avatar--group" : ""}`}>
           {activeChannel.type === "direct" ? (
-            <>
-              <img src={activeChannel.avatarUrl} alt={activeChannel.name} />
-              {directUser && directUser.isOnline && <span />}
-            </>
+            <img src={activeChannel.avatarUrl} alt={activeChannel.name} />
           ) : (
             participants.slice(0, 4).map((user) => <img key={user.id} src={user.avatarUrl} alt={user.name} />)
           )}
         </div>
         <div>
           <h2>{activeChannel.name}</h2>
-          <p>{activeChannel.type === "group" ? `${participants.length} members` : directUser?.isOnline ? "Online now" : "Offline"}</p>
+          <p>{activeChannel.type === "group" ? `${participants.length} members` : "Direct chat"}</p>
         </div>
       </header>
 
       <section className="chat-window__messages" aria-label={`${activeChannel.name} messages`}>
+        {activeChannel.messages.length === 0 && (
+          <div className="chat-window__no-messages">No messages yet</div>
+        )}
         {activeChannel.messages.map((message) => (
           <MessageBubble
             key={message.id}
@@ -68,6 +72,7 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
             sender={users.find((user) => user.id === message.senderId)}
           />
         ))}
+        <div ref={messagesEndRef} />
       </section>
 
       <form className="chat-window__composer" onSubmit={handleSubmit}>

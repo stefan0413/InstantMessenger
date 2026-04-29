@@ -5,6 +5,12 @@
   max-width: 78%;
 }
 
+@media (max-width: 760px) {
+  .message-bubble {
+    max-width: 88%;
+  }
+}
+
 .message-bubble--mine {
   align-self: flex-end;
   justify-content: flex-end;
