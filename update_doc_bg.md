@@ -1,10 +1,10 @@
 # InstantMessenger - подробна документация на промените
 
-Документът описва развитието на проекта InstantMessenger от началното състояние на repository-то до текущото състояние след последните промени по frontend, backend, authentication, локално стартиране и debugging. Текстът е структуриран като 50 отделни страници с HTML page break маркери, за да може файлът да бъде експортиран като PDF с минимум 50 страници.
+Документът описва развитието на проекта InstantMessenger от началното състояние на repository-то до текущото състояние след последните промени по frontend, backend, authentication, локално стартиране и debugging. 
 
 Дата на документа: 30 април 2026 г.
 
-Основен branch по време на работата: `feature/auth`
+Основен branch по време на работата: `feature/auth-live-backend`
 
 Последен потвърден commit преди текущите незакомитнати auth/backend промени: `d01749a Polish auth screens`
 
@@ -97,21 +97,14 @@ a8b7cb0 Initial setup
 63617bb feat: add auth module with login/register, context, API layer and documentation
 ```
 
-Това показва, че проектът вече е минал през няколко feature branches. Важното за текущата работа е, че frontend auth branch и chat/core functionality branch са били обединени. Това обединяване не е било тривиално, защото и двете страни са добавили или променили едни и същи ключови файлове. Например `App.tsx` от auth branch е бил прост auth gate с `LoginForm` и `RegisterForm`, докато `App.tsx` от chat branch е съдържал целия messenger shell.
 
-Документираните промени по-долу трябва да се четат като надграждане върху тази история. Ние не започнахме от празен проект; започнахме от вече развиващо се приложение с няколко независими линии на работа, които трябваше да бъдат събрани в един coherent продукт.
+Документираните промени по-долу трябва да се четат като надграждане върху тази история.
 
 <div style="page-break-after: always;"></div>
 
 ## Страница 3 - Frontend конфликтите
 
-Първият реален проблем беше, че frontend-ът не можеше да се build-не заради merge conflict markers. Командата `rg -n "<<<<<<<|=======|>>>>>>>" FrontEnd` показа конфликтни маркери в `FrontEnd/src/App.tsx` и много такива в `FrontEnd/package-lock.json`. TypeScript build-ът връщаше:
 
-```text
-TS1185: Merge conflict marker encountered
-```
-
-Това означаваше, че Git е оставил двете версии на един и същ файл вътре във файловата система и developer трябва да избере или ръчно да обедини логиката. В `App.tsx` имаше две версии: едната беше auth-focused, другата chat-focused. Вместо да изберем само едната, беше направено логическо обединяване.
 
 Решението беше:
 

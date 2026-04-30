@@ -7,6 +7,7 @@ export default function RegisterForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,6 +27,11 @@ export default function RegisterForm() {
 
     if (password.length < 8) {
       setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
@@ -76,6 +82,16 @@ export default function RegisterForm() {
           placeholder="Choose a password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+        />
+      </label>
+
+      <label className="auth-form__field">
+        <span>Confirm password</span>
+        <input
+          type="password"
+          placeholder="Repeat your password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
         />
       </label>
 
