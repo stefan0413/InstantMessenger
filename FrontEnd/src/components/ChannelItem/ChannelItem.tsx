@@ -18,7 +18,6 @@ function formatTime(value: string): string {
 
 export function ChannelItem({ channel, users, isActive, onSelect }: ChannelItemProps) {
   const participants = users.filter((user) => channel.participantIds.includes(user.id));
-  const directUser = participants.find((user) => user.name !== "You");
 
   return (
     <button
@@ -28,10 +27,7 @@ export function ChannelItem({ channel, users, isActive, onSelect }: ChannelItemP
     >
       <div className={`channel-item__avatar ${channel.type === "group" ? "channel-item__avatar--group" : ""}`}>
         {channel.type === "direct" ? (
-          <>
-            <img src={channel.avatarUrl} alt={channel.name} />
-            {directUser && directUser.isOnline && <span className="channel-item__online" />}
-          </>
+          <img src={channel.avatarUrl} alt={channel.name} />
         ) : (
           participants.slice(0, 3).map((user) => <img key={user.id} src={user.avatarUrl} alt={user.name} />)
         )}

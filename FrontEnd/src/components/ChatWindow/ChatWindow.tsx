@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import { searchMessages } from "../../services/searchService";
 import type { Channel } from "../../types/channel";
 import type { Message } from "../../types/message";
@@ -18,16 +19,14 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Message[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Reset search state when switching channels
   useEffect(() => {
     setSearchQuery("");
     setSearchResults(null);
     setIsSearching(false);
   }, [activeChannel?.id]);
 
-  // Debounced search: wait 250ms after the user stops typing,
-  // then call the (mock) search service.
   useEffect(() => {
     const trimmed = searchQuery.trim();
 
@@ -51,7 +50,10 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
   const participants = activeChannel
     ? users.filter((user) => activeChannel.participantIds.includes(user.id))
     : [];
-  const directUser = participants.find((user) => user.name !== "You");
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView();
+  }, [activeChannel?.id, activeChannel?.messages.length]);
 
   const isSearchActive = searchQuery.trim().length > 0;
   const messagesToRender: Message[] = isSearchActive
@@ -86,17 +88,14 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
       <header className="chat-window__header">
         <div className={`chat-window__avatar ${activeChannel.type === "group" ? "chat-window__avatar--group" : ""}`}>
           {activeChannel.type === "direct" ? (
-            <>
-              <img src={activeChannel.avatarUrl} alt={activeChannel.name} />
-              {directUser && directUser.isOnline && <span />}
-            </>
+            <img src={activeChannel.avatarUrl} alt={activeChannel.name} />
           ) : (
             participants.slice(0, 4).map((user) => <img key={user.id} src={user.avatarUrl} alt={user.name} />)
           )}
         </div>
         <div>
           <h2>{activeChannel.name}</h2>
-          <p>{activeChannel.type === "group" ? `${participants.length} members` : directUser?.isOnline ? "Online now" : "Offline"}</p>
+          <p>{activeChannel.type === "group" ? `${participants.length} members` : "Direct chat"}</p>
         </div>
       </header>
 
@@ -113,6 +112,8 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
             <p>No messages match your search.</p>
             <span>Try a different keyword.</span>
           </div>
+        ) : messagesToRender.length === 0 ? (
+          <div className="chat-window__no-messages">No messages yet</div>
         ) : (
           messagesToRender.map((message) => (
             <MessageBubble
@@ -123,6 +124,7 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
             />
           ))
         )}
+        <div ref={messagesEndRef} />
       </section>
 
       <form className="chat-window__composer" onSubmit={handleSubmit}>
