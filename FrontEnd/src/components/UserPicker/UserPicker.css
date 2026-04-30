@@ -1,0 +1,94 @@
+.user-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.user-picker__chips {
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px;
+}
+
+.user-picker__chips span {
+  color: #9ca3af;
+  font-size: 13px;
+  padding-left: 6px;
+}
+
+.user-picker__chips button {
+  align-items: center;
+  background: #eef2ff;
+  border: 0;
+  border-radius: 999px;
+  color: #3730a3;
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 6px;
+  padding: 6px 9px 6px 6px;
+}
+
+.user-picker__chips img {
+  border-radius: 50%;
+  height: 22px;
+  object-fit: cover;
+  width: 22px;
+}
+
+.user-picker__list {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  max-height: 290px;
+  overflow: auto;
+}
+
+.user-picker__row {
+  align-items: center;
+  cursor: pointer;
+  display: grid;
+  gap: 11px;
+  grid-template-columns: 40px 1fr auto;
+  padding: 12px;
+  transition: background 160ms ease;
+}
+
+.user-picker__row:hover {
+  background: #f8fafc;
+}
+
+.user-picker__row + .user-picker__row {
+  border-top: 1px solid #f1f5f9;
+}
+
+.user-picker__row img {
+  border-radius: 50%;
+  height: 40px;
+  object-fit: cover;
+  width: 40px;
+}
+
+.user-picker__row strong {
+  color: #111827;
+  display: block;
+  font-size: 14px;
+}
+
+.user-picker__row small {
+  color: #6b7280;
+  display: block;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.user-picker__row input {
+  accent-color: #4f46e5;
+  height: 18px;
+  width: 18px;
+}

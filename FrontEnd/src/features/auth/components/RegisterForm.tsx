@@ -14,7 +14,7 @@ export default function RegisterForm() {
     try {
       await register({ username, email, password });
       alert("Registered successfully");
-    } catch (err) {
+    } catch {
       alert("Registration failed");
     }
   }

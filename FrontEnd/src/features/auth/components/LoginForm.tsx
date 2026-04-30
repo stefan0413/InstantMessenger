@@ -16,7 +16,7 @@ export default function LoginForm() {
       await login({ email, password });
       alert("Login successful");
       
-    } catch (err) {
+    } catch {
       setError("Invalid email or password");
     }
   }

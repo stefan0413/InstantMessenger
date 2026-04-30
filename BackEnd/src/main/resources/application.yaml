@@ -1,3 +1,14 @@
 spring:
   application:
     name: BackEnd
+  datasource:
+    url: jdbc:postgresql://localhost:5432/messenger
+    username: postgres
+    password: root
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    org.instantmessenger.backend: DEBUG
