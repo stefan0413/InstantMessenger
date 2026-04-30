@@ -7,41 +7,54 @@ export default function LoginForm() {
   const [email, setEmail] = useState("test@test.com");
   const [password, setPassword] = useState("123456");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
       await login({ email, password });
-      alert("Login successful");
-      
     } catch {
       setError("Invalid email or password");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
+    <form className="auth-form" onSubmit={handleSubmit}>
+      <div className="auth-form__header">
+        <p>Welcome back</p>
+        <h2>Login to your inbox</h2>
+      </div>
 
-      {error && <p>{error}</p>}
+      {error && <p className="auth-form__error">{error}</p>}
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <label className="auth-form__field">
+        <span>Email</span>
+        <input
+          type="email"
+          placeholder="test@test.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </label>
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <label className="auth-form__field">
+        <span>Password</span>
+        <input
+          type="password"
+          placeholder="123456"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </label>
 
-      <button type="submit">Login</button>
+      <button className="auth-form__submit" disabled={isSubmitting} type="submit">
+        {isSubmitting ? "Logging in..." : "Login"}
+      </button>
     </form>
   );
 }
