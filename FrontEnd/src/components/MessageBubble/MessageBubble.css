@@ -56,3 +56,15 @@
   color: rgba(255, 255, 255, 0.72);
   text-align: right;
 }
+
+.message-bubble__match {
+  background: #fde68a;
+  border-radius: 3px;
+  color: #92400e;
+  padding: 0 2px;
+}
+
+.message-bubble--mine .message-bubble__match {
+  background: #fcd34d;
+  color: #78350f;
+}
