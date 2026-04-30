@@ -1,78 +1,84 @@
 package org.instantmessenger.backend.Repository;
 
 import org.instantmessenger.backend.Model.User;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class UserRepository {
 
-    private static final RowMapper<User> ROW_MAPPER = (rs, rowNum) -> new User(
-            rs.getLong("id"),
-            rs.getString("username"),
-            rs.getString("email"),
-            rs.getString("password_hash")
-    );
+    private final NamedParameterJdbcTemplate jdbc;
+    private static final UserRowMapper ROW_MAPPER = new UserRowMapper();
 
-    private final JdbcTemplate jdbc;
-
-    public UserRepository(JdbcTemplate jdbc) {
+    public UserRepository(NamedParameterJdbcTemplate jdbc) {
         this.jdbc = jdbc;
+    }
+
+    public List<User> findAll() {
+        return jdbc.query("SELECT * FROM users", ROW_MAPPER);
+    }
+
+    public Optional<User> findById(Long id) {
+        return jdbc.query(
+                "SELECT * FROM users WHERE id = :id",
+                new MapSqlParameterSource("id", id),
+                ROW_MAPPER
+        ).stream().findFirst();
+    }
+
+    public Optional<User> findByUsername(String username) {
+        return jdbc.query(
+                "SELECT * FROM users WHERE username = :username",
+                new MapSqlParameterSource("username", username),
+                ROW_MAPPER
+        ).stream().findFirst();
     }
 
     public Optional<User> findByEmail(String email) {
         return jdbc.query(
-                "SELECT id, username, email, password_hash FROM users WHERE LOWER(email) = LOWER(?)",
-                ROW_MAPPER,
-                email
-        ).stream().findFirst();
-    }
-
-    public Optional<User> findById(long id) {
-        return jdbc.query(
-                "SELECT id, username, email, password_hash FROM users WHERE id = ?",
-                ROW_MAPPER,
-                id
+                "SELECT * FROM users WHERE LOWER(email) = LOWER(:email)",
+                new MapSqlParameterSource("email", email),
+                ROW_MAPPER
         ).stream().findFirst();
     }
 
     public boolean existsByUsername(String username) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM users WHERE LOWER(username) = LOWER(?)",
-                Integer.class,
-                username
+                "SELECT COUNT(*) FROM users WHERE LOWER(username) = LOWER(:username)",
+                new MapSqlParameterSource("username", username),
+                Integer.class
         );
         return count != null && count > 0;
     }
 
     public boolean existsByEmail(String email) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM users WHERE LOWER(email) = LOWER(?)",
-                Integer.class,
-                email
+                "SELECT COUNT(*) FROM users WHERE LOWER(email) = LOWER(:email)",
+                new MapSqlParameterSource("email", email),
+                Integer.class
         );
         return count != null && count > 0;
     }
 
     public User create(String username, String email, String passwordHash) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        var params = new MapSqlParameterSource()
+                .addValue("username", username)
+                .addValue("email", email)
+                .addValue("passwordHash", passwordHash);
 
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
-                    new String[]{"id"}
-            );
-            ps.setString(1, username);
-            ps.setString(2, email);
-            ps.setString(3, passwordHash);
-            return ps;
-        }, keyHolder);
+        var keyHolder = new GeneratedKeyHolder();
+
+        jdbc.update(
+                "INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :passwordHash)",
+                params,
+                keyHolder,
+                new String[]{"id"}
+        );
 
         Number key = keyHolder.getKey();
         if (key == null) {
