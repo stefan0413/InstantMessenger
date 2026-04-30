@@ -29,19 +29,6 @@ function App() {
     });
   }, [isAuthenticated]);
 
-  if (!isAuthenticated) {
-    return (
-      <div>
-        <UserStatus />
-        <hr />
-        <button onClick={() => setAuthMode("login")}>Login</button>
-        <button onClick={() => setAuthMode("register")}>Register</button>
-        <hr />
-        {authMode === "login" ? <LoginForm /> : <RegisterForm />}
-      </div>
-    );
-  }
-
   const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -103,6 +90,56 @@ function App() {
     setActiveChannelId(newChannel.id);
     setSearchQuery("");
     setIsGroupModalOpen(false);
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="auth-shell">
+        <section className="auth-panel" aria-label="Authentication">
+          <div className="auth-preview">
+            <div className="auth-preview__brand">
+              <span>IM</span>
+              <strong>InstantMessenger</strong>
+            </div>
+            <div className="auth-preview__thread">
+              <div className="auth-preview__message">
+                <span>Mila</span>
+                <p>Campaign drafts are ready for review.</p>
+              </div>
+              <div className="auth-preview__message auth-preview__message--mine">
+                <span>You</span>
+                <p>Great, send them here and I will check tonight.</p>
+              </div>
+              <div className="auth-preview__message">
+                <span>Team Studio</span>
+                <p>New group created with 4 members.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="auth-card">
+            <div className="auth-toggle" aria-label="Authentication mode">
+              <button
+                className={authMode === "login" ? "auth-toggle__button auth-toggle__button--active" : "auth-toggle__button"}
+                onClick={() => setAuthMode("login")}
+                type="button"
+              >
+                Login
+              </button>
+              <button
+                className={authMode === "register" ? "auth-toggle__button auth-toggle__button--active" : "auth-toggle__button"}
+                onClick={() => setAuthMode("register")}
+                type="button"
+              >
+                Register
+              </button>
+            </div>
+
+            {authMode === "login" ? <LoginForm /> : <RegisterForm />}
+          </div>
+        </section>
+      </main>
+    );
   }
 
   if (loading) {

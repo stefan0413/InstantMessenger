@@ -4,15 +4,19 @@ export default function UserStatus() {
   const { user, isAuthenticated, logout } = useAuth();
 
   if (!isAuthenticated || !user) {
-    return <p>Not logged in</p>;
+    return null;
   }
 
   return (
-    <div>
-      <p>Logged in as: {user.username}</p>
-      <p>Email: {user.email}</p>
-
-      <button onClick={logout}>Logout</button>
+    <div className="user-status">
+      <div className="user-status__avatar">{user.username.slice(0, 1).toUpperCase()}</div>
+      <div className="user-status__copy">
+        <strong>{user.username}</strong>
+        <span>{user.email}</span>
+      </div>
+      <button onClick={logout} type="button">
+        Logout
+      </button>
     </div>
   );
 }
