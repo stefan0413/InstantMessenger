@@ -13,12 +13,28 @@ export default function RegisterForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+
+    if (username.trim().length < 3) {
+      setError("Username must be at least 3 characters");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setError("Enter a valid email address");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await register({ username, email, password });
-    } catch {
-      setError("Registration failed. Please try again.");
+      await register({ username: username.trim(), email: email.trim(), password });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Registration failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

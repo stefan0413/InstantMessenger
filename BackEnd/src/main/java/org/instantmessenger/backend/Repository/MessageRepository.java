@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,10 +42,16 @@ public class MessageRepository {
 
     public long save(MessageRequest request) {
         var keyholder = new GeneratedKeyHolder();
-        jdbc.update("INSERT INTO messages (content, user_id, channel_id) VALUES (?, ?, ?)",
-                request.content(),
-                request.userId(),
-                keyholder);
+        jdbc.update(connection -> {
+            var ps = connection.prepareStatement(
+                    "INSERT INTO messages (content, user_id, channel_id) VALUES (?, ?, ?)",
+                    java.sql.Statement.RETURN_GENERATED_KEYS
+            );
+            ps.setString(1, request.content());
+            ps.setLong(2, request.userId());
+            ps.setLong(3, request.channelId());
+            return ps;
+        }, keyholder);
 
         return keyholder.getKey().longValue();
     }

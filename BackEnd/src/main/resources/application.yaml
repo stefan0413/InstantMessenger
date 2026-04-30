@@ -12,3 +12,8 @@ spring:
 logging:
   level:
     org.instantmessenger.backend: DEBUG
+
+app:
+  jwt:
+    secret: replace-this-dev-secret-with-a-long-random-value
+    expiration-seconds: 86400

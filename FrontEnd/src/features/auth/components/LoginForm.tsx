@@ -4,20 +4,31 @@ import { useAuth } from "../context/AuthContext";
 export default function LoginForm() {
   const { login } = useAuth();
 
-  const [email, setEmail] = useState("test@test.com");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+
+    if (!email.includes("@")) {
+      setError("Enter a valid email address");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
-    } catch {
-      setError("Invalid email or password");
+      await login({ email: email.trim(), password });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Invalid email or password");
     } finally {
       setIsSubmitting(false);
     }
