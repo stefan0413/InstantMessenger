@@ -1,8 +1,11 @@
 package org.instantmessenger.backend.service;
 
 import org.instantmessenger.backend.DTO.MessageRequest;
+import org.instantmessenger.backend.Model.Message;
 import org.instantmessenger.backend.Repository.ChannelRepository;
 import org.instantmessenger.backend.Repository.MessageRepository;
+
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,14 @@ public class MessageService {
         this.messageRepository = messageRepository;
         this.channelRepository = channelRepository;
         this.messagingService = messagingService;
+    }
+
+    public List<Message> getByChannelId(Long channelId) {
+        return messageRepository.findByChannelId(channelId);
+    }
+
+    public void save(MessageRequest request) {
+        messageRepository.save(request);
     }
 
     public void processAndBroadcast(MessageRequest request) {

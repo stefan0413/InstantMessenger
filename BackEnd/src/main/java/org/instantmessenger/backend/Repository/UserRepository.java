@@ -80,11 +80,7 @@ public class UserRepository {
                 new String[]{"id"}
         );
 
-        Number key = keyHolder.getKey();
-        if (key == null) {
-            throw new IllegalStateException("User id was not generated");
-        }
-
-        return new User(key.longValue(), username, email, passwordHash);
+        long id = keyHolder.getKey().longValue();
+        return new User(id, username, email, passwordHash);
     }
 }
