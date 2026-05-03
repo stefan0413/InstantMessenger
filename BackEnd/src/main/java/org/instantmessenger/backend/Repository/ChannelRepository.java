@@ -80,4 +80,15 @@ public class ChannelRepository {
 
         return count != null && count > 0;
     }
+
+    public boolean isMember(long channelId, long userId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM channel_members WHERE channel_id = :channelId AND user_id = :userId",
+                new MapSqlParameterSource()
+                        .addValue("channelId", channelId)
+                        .addValue("userId", userId),
+                Integer.class
+        );
+        return count != null && count > 0;
+    }
 }

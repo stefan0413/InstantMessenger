@@ -1,6 +1,5 @@
 package org.instantmessenger.backend.Controller;
 
-import org.instantmessenger.backend.DTO.MessageRequest;
 import org.instantmessenger.backend.Model.Message;
 import org.instantmessenger.backend.service.MessageService;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +17,11 @@ public class MessageController {
     }
 
     @GetMapping
-    public List<Message> getMessages(@RequestParam Long channelId) {
-        return messageService.getByChannelId(channelId);
-    }
-
-    @PostMapping
-    public void sendMessage(@RequestBody MessageRequest request) {
-        messageService.save(request);
+    public List<Message> getMessages(
+            @RequestParam Long channelId,
+            @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(required = false) Long before
+    ) {
+        return messageService.getByChannelId(channelId, limit, before);
     }
 }

@@ -65,6 +65,15 @@ public class UserRepository {
         return count != null && count > 0;
     }
 
+    public boolean existsById(long id) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE id = :id",
+                new MapSqlParameterSource("id", id),
+                Integer.class
+        );
+        return count != null && count > 0;
+    }
+
     public User create(String username, String email, String passwordHash) {
         var params = new MapSqlParameterSource()
                 .addValue("username", username)
