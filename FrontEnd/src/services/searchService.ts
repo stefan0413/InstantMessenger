@@ -1,5 +1,5 @@
 import { mockChannels } from "../data/mockChannels";
-import { Message } from "../types/message";
+import type { Message } from "../types/message";
 
 /**
  * Mock implementation of GET /search?query=...&channelId=...

@@ -1,12 +1,13 @@
 # Dependencies
-*.tsbuildinfo
 /node_modules
+*.tsbuildinfo
 /.pnp
 .pnp.js
 
 # Build output
 /build
-/dist
+dist
+dist-ssr
 /.next/
 /out/
 
@@ -19,24 +20,28 @@
 .env.development.local
 .env.test.local
 .env.production.local
+*.local
 
 # Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-*.log
+lerna-debug.log*
 
-# Cache
-.npm
-.eslintcache
-.parcel-cache
-.cache/
-.vite/
-
-# Misc
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
 Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # AI
 .claude/

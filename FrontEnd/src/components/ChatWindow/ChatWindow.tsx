@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { searchMessages } from "../../services/searchService";
-import { Channel } from "../../types/channel";
-import { Message } from "../../types/message";
-import { User } from "../../types/user";
+import type { Channel } from "../../types/channel";
+import type { Message } from "../../types/message";
+import type { User } from "../../types/user";
 import { MessageBubble } from "../MessageBubble/MessageBubble";
 import { SearchBar } from "../SearchBar/SearchBar";
 import "./ChatWindow.css";

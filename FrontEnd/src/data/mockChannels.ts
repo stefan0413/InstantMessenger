@@ -1,4 +1,4 @@
-import { Channel } from "../types/channel";
+import type { Channel } from "../types/channel";
 import { currentUserId } from "./mockUsers";
 
 export const mockChannels: Channel[] = [

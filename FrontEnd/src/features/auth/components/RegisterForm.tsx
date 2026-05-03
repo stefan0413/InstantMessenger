@@ -1,0 +1,71 @@
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+
+export default function RegisterForm() {
+  const { register } = useAuth();
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      await register({ username, email, password });
+    } catch {
+      setError("Registration failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form className="auth-form" onSubmit={handleSubmit}>
+      <div className="auth-form__header">
+        <p>New account</p>
+        <h2>Create your workspace</h2>
+      </div>
+
+      {error && <p className="auth-form__error">{error}</p>}
+
+      <label className="auth-form__field">
+        <span>Username</span>
+        <input
+          type="text"
+          placeholder="stefan"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+      </label>
+
+      <label className="auth-form__field">
+        <span>Email</span>
+        <input
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </label>
+
+      <label className="auth-form__field">
+        <span>Password</span>
+        <input
+          type="password"
+          placeholder="Choose a password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </label>
+
+      <button className="auth-form__submit" disabled={isSubmitting} type="submit">
+        {isSubmitting ? "Creating..." : "Create account"}
+      </button>
+    </form>
+  );
+}

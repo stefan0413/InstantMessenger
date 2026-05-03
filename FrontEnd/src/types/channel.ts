@@ -1,4 +1,4 @@
-import { Message } from "./message";
+import type { Message } from "./message";
 
 export interface Channel {
   id: string;
