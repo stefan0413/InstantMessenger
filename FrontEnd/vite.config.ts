@@ -8,6 +8,11 @@ export default defineConfig({
       "/api": "http://localhost:8080",
       "/channels": "http://localhost:8080",
       "/messages": "http://localhost:8080",
+      "/users": "http://localhost:8080",
+      "/ws-native": {
+        target: "ws://localhost:8080",
+        ws: true,
+      },
     },
   },
 });

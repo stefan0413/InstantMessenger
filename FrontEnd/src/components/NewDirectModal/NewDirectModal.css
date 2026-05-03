@@ -52,6 +52,22 @@
   overflow: auto;
 }
 
+.new-direct-modal__empty {
+  color: #64748b;
+  font-size: 14px;
+  padding: 16px;
+  text-align: center;
+}
+
+.new-direct-modal__error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  color: #b91c1c;
+  font-size: 14px;
+  padding: 12px 14px;
+}
+
 .new-direct-modal__users button {
   align-items: center;
   background: #ffffff;

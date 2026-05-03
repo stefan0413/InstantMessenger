@@ -11,10 +11,14 @@ import "./ChatWindow.css";
 interface ChatWindowProps {
   activeChannel?: Channel;
   users: User[];
+  currentUserId: string;
+  socketStatus: "connecting" | "connected" | "disconnected" | "error";
+  error: string | null;
   onSendMessage: (text: string) => void;
+  onLoadOlder: (channelId: string) => void;
 }
 
-export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowProps) {
+export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, error, onSendMessage, onLoadOlder }: ChatWindowProps) {
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Message[] | null>(null);
@@ -38,7 +42,7 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
 
     setIsSearching(true);
     const timeoutId = setTimeout(() => {
-      searchMessages(trimmed, activeChannel.id).then((results) => {
+      searchMessages(trimmed, activeChannel.id, currentUserId).then((results) => {
         setSearchResults(results);
         setIsSearching(false);
       });
@@ -107,6 +111,16 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
       />
 
       <section className="chat-window__messages" aria-label={`${activeChannel.name} messages`}>
+        {!isSearchActive && activeChannel.hasMoreMessages && (
+          <button
+            className="chat-window__load-older"
+            disabled={activeChannel.isLoadingMessages}
+            onClick={() => onLoadOlder(activeChannel.id)}
+            type="button"
+          >
+            {activeChannel.isLoadingMessages ? "Loading..." : "Load older messages"}
+          </button>
+        )}
         {isSearchActive && !isSearching && messagesToRender.length === 0 ? (
           <div className="chat-window__empty-search">
             <p>No messages match your search.</p>
@@ -128,12 +142,17 @@ export function ChatWindow({ activeChannel, users, onSendMessage }: ChatWindowPr
       </section>
 
       <form className="chat-window__composer" onSubmit={handleSubmit}>
+        {(error || socketStatus !== "connected") && (
+          <div className="chat-window__composer-status">
+            {error ?? `WebSocket ${socketStatus}`}
+          </div>
+        )}
         <input
           value={messageText}
           onChange={(event) => setMessageText(event.target.value)}
           placeholder={`Message ${activeChannel.name}`}
         />
-        <button disabled={!messageText.trim()} type="submit">
+        <button disabled={!messageText.trim() || socketStatus !== "connected"} type="submit">
           Send
         </button>
       </form>

@@ -1,100 +1,264 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChannelList } from "./components/ChannelList/ChannelList";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import { NewDirectModal } from "./components/NewDirectModal/NewDirectModal";
 import { NewGroupModal } from "./components/NewGroupModal/NewGroupModal";
-import { currentUserId, mockUsers } from "./data/mockUsers";
-import { getChannels } from "./services/channelsService";
+import { createChannel, getChannels, getUsersFromChannels } from "./services/channelsService";
+import { ChatSocketClient } from "./services/chatSocketService";
+import { getMessages, isBackendMessage, mapBackendMessage } from "./services/messagesService";
+import { searchUsers } from "./services/usersService";
 import type { Channel } from "./types/channel";
 import type { Message } from "./types/message";
+import type { User } from "./types/user";
 import LoginForm from "./features/auth/components/LoginForm";
 import RegisterForm from "./features/auth/components/RegisterForm";
 import UserStatus from "./features/auth/components/UserStatus";
 import { useAuth } from "./features/auth/context/AuthContext";
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannelId, setActiveChannelId] = useState<string>();
   const [isDirectModalOpen, setIsDirectModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  const [availableUsersLoading, setAvailableUsersLoading] = useState(false);
+  const [availableUsersError, setAvailableUsersError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [loadedMessageChannelIds, setLoadedMessageChannelIds] = useState<Set<string>>(() => new Set());
+  const [socketStatus, setSocketStatus] = useState<"connecting" | "connected" | "disconnected" | "error">("disconnected");
+  const [sendError, setSendError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const socketRef = useRef<ChatSocketClient | null>(null);
+  const currentUserId = user ? String(user.id) : "";
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    getChannels().then((data) => {
+    if (!isAuthenticated || !currentUserId) return;
+
+    setLoading(true);
+    getChannels(currentUserId).then((data) => {
       setChannels(data);
       setActiveChannelId(data[0]?.id);
       setLoading(false);
+    }).catch(() => {
+      setChannels([]);
+      setLoading(false);
     });
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentUserId]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !currentUserId) {
+      socketRef.current?.disconnect();
+      socketRef.current = null;
+      return;
+    }
+
+    const socket = new ChatSocketClient();
+    socket.connect(setSocketStatus);
+    socketRef.current = socket;
+
+    return () => socket.disconnect();
+  }, [isAuthenticated, currentUserId]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket || !currentUserId) {
+      return;
+    }
+
+    channels.forEach((channel) => {
+      socket.subscribeToChannel(channel.id, (event) => {
+        if (event.type !== "MESSAGE_NEW" || !isBackendMessage(event.data)) {
+          return;
+        }
+
+        const message = mapBackendMessage(event.data, currentUserId);
+        setChannels((currentChannels) =>
+          currentChannels.map((currentChannel) => {
+            if (currentChannel.id !== message.channelId) {
+              return currentChannel;
+            }
+
+            const alreadyExists = currentChannel.messages.some((item) => item.id === message.id);
+            const messages = alreadyExists ? currentChannel.messages : [...currentChannel.messages, message];
+
+            return {
+              ...currentChannel,
+              messages,
+              lastMessage: message.text,
+              updatedAt: message.createdAt,
+            };
+          }),
+        );
+      });
+    });
+  }, [channels, currentUserId]);
+
+  useEffect(() => {
+    if (!activeChannelId || !currentUserId) {
+      return;
+    }
+
+    const activeChannel = channels.find((channel) => channel.id === activeChannelId);
+    if (!activeChannel || loadedMessageChannelIds.has(activeChannelId) || activeChannel.isLoadingMessages) {
+      return;
+    }
+
+    void loadMessages(activeChannelId);
+  }, [activeChannelId, channels, currentUserId, loadedMessageChannelIds]);
 
   const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
   const activeChannel = channels.find((channel) => channel.id === activeChannelId);
+  const scopedUsers = useMemo(() => getUsersFromChannels(channels), [channels]);
+  const usersForCreation = useMemo(() => {
+    const byId = new Map<string, User>();
+    [...availableUsers, ...scopedUsers].forEach((candidate) => {
+      if (candidate.id !== currentUserId) {
+        byId.set(candidate.id, candidate);
+      }
+    });
+    return Array.from(byId.values());
+  }, [availableUsers, scopedUsers, currentUserId]);
 
-  function handleSendMessage(text: string): void {
-    if (!activeChannel) {
+  async function openDirectModal(): Promise<void> {
+    setIsDirectModalOpen(true);
+    setCreateError(null);
+    await loadAvailableUsers();
+  }
+
+  async function openGroupModal(): Promise<void> {
+    setIsGroupModalOpen(true);
+    setCreateError(null);
+    await loadAvailableUsers();
+  }
+
+  async function loadAvailableUsers(): Promise<void> {
+    if (!currentUserId) {
       return;
     }
 
-    const now = new Date().toISOString();
-    const newMessage: Message = {
-      id: `message-${Date.now()}`,
-      channelId: activeChannel.id,
-      senderId: currentUserId,
-      text,
-      createdAt: now,
-      isMine: true,
-    };
+    setAvailableUsersLoading(true);
+    setAvailableUsersError(null);
+
+    try {
+      const users = await searchUsers({ currentUserId, limit: 25 });
+      setAvailableUsers(users);
+    } catch {
+      setAvailableUsers([]);
+      setAvailableUsersError("Could not load users. Check that the backend was restarted and /users is available.");
+    } finally {
+      setAvailableUsersLoading(false);
+    }
+  }
+
+  async function loadMessages(channelId: string, before?: string): Promise<void> {
+    if (!currentUserId) {
+      return;
+    }
 
     setChannels((currentChannels) =>
       currentChannels.map((channel) =>
-        channel.id === activeChannel.id
+        channel.id === channelId ? { ...channel, isLoadingMessages: true } : channel,
+      ),
+    );
+
+    let messages: Message[] = [];
+    try {
+      messages = await getMessages({ channelId, currentUserId, before, limit: 30 });
+    } catch {
+      if (!before) {
+        setLoadedMessageChannelIds((current) => {
+          const next = new Set(current);
+          next.add(channelId);
+          return next;
+        });
+      }
+
+      setChannels((currentChannels) =>
+        currentChannels.map((channel) =>
+          channel.id === channelId ? { ...channel, isLoadingMessages: false } : channel,
+        ),
+      );
+      return;
+    }
+
+    if (!before) {
+      setLoadedMessageChannelIds((current) => {
+        const next = new Set(current);
+        next.add(channelId);
+        return next;
+      });
+    }
+
+    setChannels((currentChannels) =>
+      currentChannels.map((channel) =>
+        channel.id === channelId
           ? {
               ...channel,
-              messages: [...channel.messages, newMessage],
-              lastMessage: text,
-              updatedAt: now,
+              messages: before ? [...messages, ...channel.messages] : messages,
+              hasMoreMessages: messages.length === 30,
+              isLoadingMessages: false,
+              lastMessage: before ? channel.lastMessage : messages.at(-1)?.text ?? channel.lastMessage,
+              updatedAt: before ? channel.updatedAt : messages.at(-1)?.createdAt ?? channel.updatedAt,
             }
           : channel,
       ),
     );
   }
 
-  function handleCreateGroup(payload: { name: string; participantIds: string[] }): void {
-    const now = new Date().toISOString();
-    const id = `group-${Date.now()}`;
+  function handleLoadOlder(channelId: string): void {
+    const channel = channels.find((item) => item.id === channelId);
+    const oldestMessageId = channel?.messages[0]?.id;
 
-    const welcomeMessage: Message = {
-      id: `welcome-${Date.now()}`,
-      channelId: id,
-      senderId: currentUserId,
-      text: `Created "${payload.name}" and added ${payload.participantIds.length} people.`,
-      createdAt: now,
-      isMine: true,
-    };
+    if (!oldestMessageId || channel?.isLoadingMessages) {
+      return;
+    }
 
-    const newChannel: Channel = {
-      id,
-      name: payload.name,
-      type: "group",
-      participantIds: [currentUserId, ...payload.participantIds],
-      messages: [welcomeMessage],
-      lastMessage: welcomeMessage.text,
-      updatedAt: now,
-    };
-
-    setChannels((currentChannels) => [newChannel, ...currentChannels]);
-    setActiveChannelId(newChannel.id);
-    setSearchQuery("");
-    setIsGroupModalOpen(false);
+    void loadMessages(channelId, oldestMessageId);
   }
 
-  function handleCreateDirectChat(userId: string): void {
+  function handleSendMessage(text: string): void {
+    if (!activeChannel || !socketRef.current || !currentUserId) {
+      return;
+    }
+
+    const wasSent = socketRef.current.sendMessage({
+      content: text,
+      userId: currentUserId,
+      channelId: activeChannel.id,
+    });
+
+    if (!wasSent) {
+      setSendError("WebSocket is not connected yet. Message will send after reconnect.");
+      return;
+    }
+
+    setSendError(null);
+  }
+
+  async function handleCreateGroup(payload: { name: string; participantIds: string[] }): Promise<void> {
+    try {
+      const newChannel = await createChannel({
+        name: payload.name,
+        memberIds: [currentUserId, ...payload.participantIds],
+        currentUserId,
+      });
+
+      setChannels((currentChannels) => [newChannel, ...currentChannels]);
+      setActiveChannelId(newChannel.id);
+      setSearchQuery("");
+      setCreateError(null);
+      setIsGroupModalOpen(false);
+    } catch {
+      setCreateError("Could not create channel. Check backend logs and database migrations.");
+    }
+  }
+
+  async function handleCreateDirectChat(userId: string): Promise<void> {
     const existingChannel = channels.find(
       (channel) => channel.type === "direct" && channel.participantIds.includes(userId),
     );
@@ -105,30 +269,27 @@ function App() {
       return;
     }
 
-    const user = mockUsers.find((currentUser) => currentUser.id === userId);
+    const user = usersForCreation.find((currentUser) => currentUser.id === userId);
 
     if (!user) {
       return;
     }
 
-    const now = new Date().toISOString();
-    const id = `direct-${Date.now()}`;
+    try {
+      const newChannel = await createChannel({
+        name: user.name,
+        memberIds: [currentUserId, user.id],
+        currentUserId,
+      });
 
-    const newChannel: Channel = {
-      id,
-      name: user.name,
-      type: "direct",
-      avatarUrl: user.avatarUrl,
-      participantIds: [currentUserId, user.id],
-      messages: [],
-      lastMessage: "No messages yet",
-      updatedAt: now,
-    };
-
-    setChannels((currentChannels) => [newChannel, ...currentChannels]);
-    setActiveChannelId(id);
-    setSearchQuery("");
-    setIsDirectModalOpen(false);
+      setChannels((currentChannels) => [newChannel, ...currentChannels]);
+      setActiveChannelId(newChannel.id);
+      setSearchQuery("");
+      setCreateError(null);
+      setIsDirectModalOpen(false);
+    } catch {
+      setCreateError("Could not create channel. Check backend logs and database migrations.");
+    }
   }
 
   if (!isAuthenticated) {
@@ -196,27 +357,39 @@ function App() {
       <div className="app-shell">
         <ChannelList
           channels={filteredChannels}
-          users={mockUsers}
+          users={scopedUsers}
           activeChannelId={activeChannelId}
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
           onSelectChannel={setActiveChannelId}
-          onNewChatClick={() => setIsDirectModalOpen(true)}
-          onNewGroupClick={() => setIsGroupModalOpen(true)}
+          onNewChatClick={() => void openDirectModal()}
+          onNewGroupClick={() => void openGroupModal()}
         />
 
-        <ChatWindow activeChannel={activeChannel} users={mockUsers} onSendMessage={handleSendMessage} />
+        <ChatWindow
+          activeChannel={activeChannel}
+          users={activeChannel?.participants ?? []}
+          currentUserId={currentUserId}
+          socketStatus={socketStatus}
+          error={sendError}
+          onSendMessage={handleSendMessage}
+          onLoadOlder={handleLoadOlder}
+        />
       </div>
 
       <NewDirectModal
-        users={mockUsers.filter((user) => user.id !== currentUserId)}
+        users={usersForCreation}
+        isLoading={availableUsersLoading}
+        error={availableUsersError ?? createError}
         isOpen={isDirectModalOpen}
         onClose={() => setIsDirectModalOpen(false)}
         onCreateChat={handleCreateDirectChat}
       />
 
       <NewGroupModal
-        users={mockUsers.filter((user) => user.id !== currentUserId)}
+        users={usersForCreation}
+        isLoadingUsers={availableUsersLoading}
+        error={availableUsersError ?? createError}
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onCreateGroup={handleCreateGroup}

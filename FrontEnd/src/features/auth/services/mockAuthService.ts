@@ -6,7 +6,7 @@ import type {
 
 const MOCK_USER = {
   id: 1,
-  username: "stefan",
+  username: "testUser",
   email: "test@test.com",
   password: "123456",
 };
