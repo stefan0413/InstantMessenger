@@ -2,29 +2,28 @@ package org.instantmessenger.backend.Controller;
 
 import org.instantmessenger.backend.DTO.MessageRequest;
 import org.instantmessenger.backend.Model.Message;
-import org.instantmessenger.backend.Repository.MessageRepository;
+import org.instantmessenger.backend.service.MessageService;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/messages")
 public class MessageController {
 
-    private final MessageRepository repo;
+    private final MessageService messageService;
 
-    public MessageController(MessageRepository repo) {
-        this.repo = repo;
+    public MessageController(MessageService messageService) {
+        this.messageService = messageService;
     }
 
     @GetMapping
     public List<Message> getMessages(@RequestParam Long channelId) {
-        return repo.findByChannelId(channelId);
+        return messageService.getByChannelId(channelId);
     }
 
     @PostMapping
     public void sendMessage(@RequestBody MessageRequest request) {
-        repo.save(request);
+        messageService.save(request);
     }
 }

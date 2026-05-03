@@ -2,7 +2,8 @@ package org.instantmessenger.backend.Repository;
 
 import org.instantmessenger.backend.DTO.MessageRequest;
 import org.instantmessenger.backend.Model.Message;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
@@ -12,9 +13,9 @@ import java.util.Optional;
 @Repository
 public class MessageRepository {
 
-    private final JdbcTemplate jdbc;
+    private final NamedParameterJdbcTemplate jdbc;
 
-    public MessageRepository(JdbcTemplate jdbc) {
+    public MessageRepository(NamedParameterJdbcTemplate jdbc) {
         this.jdbc = jdbc;
     }
 
@@ -22,9 +23,9 @@ public class MessageRepository {
 
     public List<Message> findByChannelId(Long channelId) {
         return jdbc.query(
-                "SELECT * FROM messages WHERE channel_id = ?",
-                ROW_MAPPER,
-                channelId
+                "SELECT * FROM messages WHERE channel_id = :channelId",
+                new MapSqlParameterSource("channelId", channelId),
+                ROW_MAPPER
         );
     }
 
@@ -33,26 +34,30 @@ public class MessageRepository {
     }
 
     public Optional<Message> getById(long id){
-        var message = jdbc.query("SELECT * FROM messages WHERE id = ?",
-                ROW_MAPPER,
-                id);
+        var result = jdbc.query(
+                "SELECT * FROM messages WHERE id = :id",
+                new MapSqlParameterSource("id", id),
+                ROW_MAPPER
+        );
 
-        return message.stream().findFirst();
+        return result.stream().findFirst();
     }
 
     public long save(MessageRequest request) {
-        var keyholder = new GeneratedKeyHolder();
-        jdbc.update(connection -> {
-            var ps = connection.prepareStatement(
-                    "INSERT INTO messages (content, user_id, channel_id) VALUES (?, ?, ?)",
-                    java.sql.Statement.RETURN_GENERATED_KEYS
-            );
-            ps.setString(1, request.content());
-            ps.setLong(2, request.userId());
-            ps.setLong(3, request.channelId());
-            return ps;
-        }, keyholder);
+        var sql = """
+            INSERT INTO messages (content, user_id, channel_id)
+            VALUES (:content, :userId, :channelId)
+        """;
 
-        return keyholder.getKey().longValue();
+        var params = new MapSqlParameterSource()
+                .addValue("content", request.content())
+                .addValue("userId", request.userId())
+                .addValue("channelId", request.channelId());
+
+        var keyHolder = new GeneratedKeyHolder();
+
+        jdbc.update(sql, params, keyHolder, new String[]{"id"});
+
+        return keyHolder.getKey().longValue();
     }
 }
