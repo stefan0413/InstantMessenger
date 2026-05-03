@@ -1,7 +1,7 @@
 .chat-window {
   background: #ffffff;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   min-width: 0;
 }
 
@@ -90,6 +90,27 @@
   min-height: 0;
   overflow: auto;
   padding: 24px;
+}
+
+.chat-window__empty-search {
+  align-items: center;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: auto;
+  text-align: center;
+}
+
+.chat-window__empty-search p {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.chat-window__empty-search span {
+  font-size: 13px;
 }
 
 .chat-window__composer {
