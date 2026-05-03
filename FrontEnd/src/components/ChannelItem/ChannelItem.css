@@ -57,17 +57,6 @@
   grid-row: span 2;
 }
 
-.channel-item__online {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #22c55e;
-  border: 2px solid #ffffff;
-  position: absolute;
-  right: 1px;
-  bottom: 2px;
-}
-
 .channel-item__content {
   min-width: 0;
   flex: 1;

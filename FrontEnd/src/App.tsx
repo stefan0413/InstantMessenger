@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChannelList } from "./components/ChannelList/ChannelList";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
+import { NewDirectModal } from "./components/NewDirectModal/NewDirectModal";
 import { NewGroupModal } from "./components/NewGroupModal/NewGroupModal";
 import { currentUserId, mockUsers } from "./data/mockUsers";
 import { getChannels } from "./services/channelsService";
@@ -15,6 +16,7 @@ function App() {
   const { isAuthenticated } = useAuth();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannelId, setActiveChannelId] = useState<string>();
+  const [isDirectModalOpen, setIsDirectModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -92,6 +94,43 @@ function App() {
     setIsGroupModalOpen(false);
   }
 
+  function handleCreateDirectChat(userId: string): void {
+    const existingChannel = channels.find(
+      (channel) => channel.type === "direct" && channel.participantIds.includes(userId),
+    );
+
+    if (existingChannel) {
+      setActiveChannelId(existingChannel.id);
+      setIsDirectModalOpen(false);
+      return;
+    }
+
+    const user = mockUsers.find((currentUser) => currentUser.id === userId);
+
+    if (!user) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const id = `direct-${Date.now()}`;
+
+    const newChannel: Channel = {
+      id,
+      name: user.name,
+      type: "direct",
+      avatarUrl: user.avatarUrl,
+      participantIds: [currentUserId, user.id],
+      messages: [],
+      lastMessage: "No messages yet",
+      updatedAt: now,
+    };
+
+    setChannels((currentChannels) => [newChannel, ...currentChannels]);
+    setActiveChannelId(id);
+    setSearchQuery("");
+    setIsDirectModalOpen(false);
+  }
+
   if (!isAuthenticated) {
     return (
       <main className="auth-shell">
@@ -162,11 +201,19 @@ function App() {
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
           onSelectChannel={setActiveChannelId}
+          onNewChatClick={() => setIsDirectModalOpen(true)}
           onNewGroupClick={() => setIsGroupModalOpen(true)}
         />
 
         <ChatWindow activeChannel={activeChannel} users={mockUsers} onSendMessage={handleSendMessage} />
       </div>
+
+      <NewDirectModal
+        users={mockUsers.filter((user) => user.id !== currentUserId)}
+        isOpen={isDirectModalOpen}
+        onClose={() => setIsDirectModalOpen(false)}
+        onCreateChat={handleCreateDirectChat}
+      />
 
       <NewGroupModal
         users={mockUsers.filter((user) => user.id !== currentUserId)}

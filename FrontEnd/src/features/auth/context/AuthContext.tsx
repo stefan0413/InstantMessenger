@@ -44,6 +44,8 @@ localStorage.setItem("token", data.token);
 
     setUser(data.user);
     setToken(data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.token);
   }
 
   function logout() {

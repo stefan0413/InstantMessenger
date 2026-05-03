@@ -43,7 +43,6 @@ export function UserPicker({ users, selectedUserIds, onChange }: UserPickerProps
               <img src={user.avatarUrl} alt={user.name} />
               <span>
                 <strong>{user.name}</strong>
-                <small>{user.isOnline ? "Online" : "Offline"}</small>
               </span>
               <input checked={isSelected} onChange={() => toggleUser(user.id)} type="checkbox" />
             </label>

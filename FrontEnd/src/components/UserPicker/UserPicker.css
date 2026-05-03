@@ -80,13 +80,6 @@
   font-size: 14px;
 }
 
-.user-picker__row small {
-  color: #6b7280;
-  display: block;
-  font-size: 12px;
-  margin-top: 2px;
-}
-
 .user-picker__row input {
   accent-color: #4f46e5;
   height: 18px;

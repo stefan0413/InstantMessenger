@@ -16,6 +16,9 @@ target/
 logs/
 spring-shell.log
 
+# Local dev database
+data/
+
 # STS / Eclipse
 .apt_generated
 .classpath

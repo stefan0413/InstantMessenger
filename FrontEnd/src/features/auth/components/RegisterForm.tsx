@@ -7,18 +7,40 @@ export default function RegisterForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+
+    if (username.trim().length < 3) {
+      setError("Username must be at least 3 characters");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setError("Enter a valid email address");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await register({ username, email, password });
-    } catch {
-      setError("Registration failed. Please try again.");
+      await register({ username: username.trim(), email: email.trim(), password });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Registration failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -60,6 +82,16 @@ export default function RegisterForm() {
           placeholder="Choose a password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+        />
+      </label>
+
+      <label className="auth-form__field">
+        <span>Confirm password</span>
+        <input
+          type="password"
+          placeholder="Repeat your password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
         />
       </label>
 

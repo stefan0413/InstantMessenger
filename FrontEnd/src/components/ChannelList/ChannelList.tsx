@@ -10,6 +10,7 @@ interface ChannelListProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSelectChannel: (channelId: string) => void;
+  onNewChatClick: () => void;
   onNewGroupClick: () => void;
 }
 
@@ -20,6 +21,7 @@ export function ChannelList({
   searchValue,
   onSearchChange,
   onSelectChannel,
+  onNewChatClick,
   onNewGroupClick,
 }: ChannelListProps) {
   return (
@@ -29,9 +31,14 @@ export function ChannelList({
           <p className="channel-list__eyebrow">Inbox</p>
           <h1>Messages</h1>
         </div>
-        <button className="channel-list__new" onClick={onNewGroupClick} type="button">
-          New group
-        </button>
+        <div className="channel-list__actions">
+          <button className="channel-list__new" onClick={onNewChatClick} type="button">
+            New chat
+          </button>
+          <button className="channel-list__new channel-list__new--secondary" onClick={onNewGroupClick} type="button">
+            New group
+          </button>
+        </div>
       </div>
 
       <label className="channel-list__search">
