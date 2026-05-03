@@ -1,4 +1,5 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import type { User } from "../../types/user";
 import { UserPicker } from "../UserPicker/UserPicker";
 import "./NewGroupModal.css";
@@ -10,12 +11,14 @@ interface CreateGroupPayload {
 
 interface NewGroupModalProps {
   users: User[];
+  isLoadingUsers: boolean;
+  error: string | null;
   isOpen: boolean;
   onClose: () => void;
   onCreateGroup: (payload: CreateGroupPayload) => void;
 }
 
-export function NewGroupModal({ users, isOpen, onClose, onCreateGroup }: NewGroupModalProps) {
+export function NewGroupModal({ users, isLoadingUsers, error, isOpen, onClose, onCreateGroup }: NewGroupModalProps) {
   const [groupName, setGroupName] = useState("");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
@@ -69,7 +72,13 @@ export function NewGroupModal({ users, isOpen, onClose, onCreateGroup }: NewGrou
             />
           </label>
 
-          <UserPicker users={users} selectedUserIds={selectedUserIds} onChange={setSelectedUserIds} />
+          {isLoadingUsers ? (
+            <div className="new-group-modal__status">Loading users...</div>
+          ) : error ? (
+            <div className="new-group-modal__error">{error}</div>
+          ) : (
+            <UserPicker users={users} selectedUserIds={selectedUserIds} onChange={setSelectedUserIds} />
+          )}
 
           <div className="new-group-modal__actions">
             <button className="new-group-modal__cancel" onClick={handleClose} type="button">

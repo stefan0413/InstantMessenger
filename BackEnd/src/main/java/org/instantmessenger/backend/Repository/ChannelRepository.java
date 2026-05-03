@@ -29,6 +29,20 @@ public class ChannelRepository {
         );
     }
 
+    public List<Channel> findByMemberId(long userId) {
+        return jdbc.query(
+                """
+                SELECT c.*
+                FROM channels c
+                JOIN channel_members cm ON cm.channel_id = c.id
+                WHERE cm.user_id = :userId
+                ORDER BY c.id DESC
+                """,
+                new MapSqlParameterSource("userId", userId),
+                ROW_MAPPER
+        );
+    }
+
     public Map<Long, List<Long>> findAllMemberIds() {
         Map<Long, List<Long>> result = new LinkedHashMap<>();
         jdbc.query("SELECT channel_id, user_id FROM channel_members ORDER BY channel_id", (rs) -> {
