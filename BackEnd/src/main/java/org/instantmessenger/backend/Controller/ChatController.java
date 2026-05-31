@@ -69,8 +69,6 @@ public class ChatController {
         messagingService.broadcastPresence(new PresenceEvent(request.userId(), "ONLINE"));
     }
 
-    // Returns recent message history when a client subscribes to a channel.
-    // FE subscribes to /app/channel/{channelId} to trigger this, then separately to /topic/channel/{channelId} for live updates.
     @SubscribeMapping("/channel/{channelId}")
     public List<ChannelEvent> onChannelSubscribe(@DestinationVariable long channelId) {
         log.debug("Client subscribed to channel {}, sending history", channelId);

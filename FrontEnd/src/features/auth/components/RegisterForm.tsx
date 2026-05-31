@@ -59,7 +59,7 @@ export default function RegisterForm() {
         <span>Username</span>
         <input
           type="text"
-          placeholder="stefan"
+          placeholder="test"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
