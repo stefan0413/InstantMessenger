@@ -6,7 +6,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -21,6 +24,67 @@ public class UserRepository {
 
     public List<User> findAll() {
         return jdbc.query("SELECT * FROM users", ROW_MAPPER);
+    }
+
+    public List<User> search(String query, long excludeUserId, int limit) {
+        String normalizedQuery = query == null ? "" : query.trim();
+        int cappedLimit = Math.max(1, Math.min(limit, 50));
+
+        var params = new MapSqlParameterSource()
+                .addValue("excludeUserId", excludeUserId)
+                .addValue("query", "%" + normalizedQuery.toLowerCase() + "%")
+                .addValue("limit", cappedLimit);
+
+        if (normalizedQuery.isBlank()) {
+            return jdbc.query(
+                    """
+                    SELECT *
+                    FROM users
+                    WHERE id <> :excludeUserId
+                    ORDER BY username
+                    LIMIT :limit
+                    """,
+                    params,
+                    ROW_MAPPER
+            );
+        }
+
+        return jdbc.query(
+                """
+                SELECT *
+                FROM users
+                WHERE id <> :excludeUserId
+                  AND (LOWER(username) LIKE :query OR LOWER(email) LIKE :query)
+                ORDER BY username
+                LIMIT :limit
+                """,
+                params,
+                ROW_MAPPER
+        );
+    }
+
+    public Map<Long, List<User>> findByChannelIds(List<Long> channelIds) {
+        if (channelIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, List<User>> result = new LinkedHashMap<>();
+        jdbc.query(
+                """
+                SELECT cm.channel_id, u.*
+                FROM channel_members cm
+                JOIN users u ON u.id = cm.user_id
+                WHERE cm.channel_id IN (:channelIds)
+                ORDER BY cm.channel_id, u.username
+                """,
+                new MapSqlParameterSource("channelIds", channelIds),
+                rs -> {
+                    long channelId = rs.getLong("channel_id");
+                    var user = ROW_MAPPER.mapRow(rs, rs.getRow());
+                    result.computeIfAbsent(channelId, ignored -> new ArrayList<>()).add(user);
+                }
+        );
+        return result;
     }
 
     public Optional<User> findById(Long id) {
@@ -60,6 +124,15 @@ public class UserRepository {
         Integer count = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM users WHERE LOWER(email) = LOWER(:email)",
                 new MapSqlParameterSource("email", email),
+                Integer.class
+        );
+        return count != null && count > 0;
+    }
+
+    public boolean existsById(long id) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE id = :id",
+                new MapSqlParameterSource("id", id),
                 Integer.class
         );
         return count != null && count > 0;

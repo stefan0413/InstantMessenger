@@ -93,6 +93,22 @@
   padding-top: 4px;
 }
 
+.new-group-modal__status {
+  color: #64748b;
+  font-size: 14px;
+  padding: 12px 0;
+  text-align: center;
+}
+
+.new-group-modal__error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  color: #b91c1c;
+  font-size: 14px;
+  padding: 12px 14px;
+}
+
 .new-group-modal__actions button {
   border: 0;
   border-radius: 12px;

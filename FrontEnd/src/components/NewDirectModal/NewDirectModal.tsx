@@ -3,12 +3,14 @@ import "./NewDirectModal.css";
 
 interface NewDirectModalProps {
   users: User[];
+  isLoading: boolean;
+  error: string | null;
   isOpen: boolean;
   onClose: () => void;
   onCreateChat: (userId: string) => void;
 }
 
-export function NewDirectModal({ users, isOpen, onClose, onCreateChat }: NewDirectModalProps) {
+export function NewDirectModal({ users, isLoading, error, isOpen, onClose, onCreateChat }: NewDirectModalProps) {
   if (!isOpen) {
     return null;
   }
@@ -24,14 +26,22 @@ export function NewDirectModal({ users, isOpen, onClose, onCreateChat }: NewDire
         </div>
 
         <div className="new-direct-modal__users">
-          {users.map((user) => (
-            <button key={user.id} onClick={() => onCreateChat(user.id)} type="button">
-              <img src={user.avatarUrl} alt={user.name} />
-              <span>
-                <strong>{user.name}</strong>
-              </span>
-            </button>
-          ))}
+          {isLoading ? (
+            <div className="new-direct-modal__empty">Loading users...</div>
+          ) : error ? (
+            <div className="new-direct-modal__error">{error}</div>
+          ) : users.length > 0 ? (
+            users.map((user) => (
+              <button key={user.id} onClick={() => onCreateChat(user.id)} type="button">
+                <img src={user.avatarUrl} alt={user.name} />
+                <span>
+                  <strong>{user.name}</strong>
+                </span>
+              </button>
+            ))
+          ) : (
+            <div className="new-direct-modal__empty">No users found</div>
+          )}
         </div>
       </div>
     </div>

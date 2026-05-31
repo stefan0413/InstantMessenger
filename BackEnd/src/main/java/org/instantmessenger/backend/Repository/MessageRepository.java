@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,25 +23,34 @@ public class MessageRepository {
 
     private static final MessageRowMapper ROW_MAPPER = new MessageRowMapper();
 
-    public List<Message> findByChannelId(Long channelId) {
-        return jdbc.query(
-                "SELECT * FROM messages WHERE channel_id = :channelId",
-                new MapSqlParameterSource("channelId", channelId),
-                ROW_MAPPER
-        );
+    public List<Message> findByChannelId(Long channelId, int limit, Long before) {
+        var params = new MapSqlParameterSource()
+                .addValue("channelId", channelId)
+                .addValue("limit", limit);
+
+        String sql;
+        if (before != null) {
+            sql = "SELECT * FROM messages WHERE channel_id = :channelId AND id < :before ORDER BY id DESC LIMIT :limit";
+            params.addValue("before", before);
+        } else {
+            sql = "SELECT * FROM messages WHERE channel_id = :channelId ORDER BY id DESC LIMIT :limit";
+        }
+
+        var result = new ArrayList<>(jdbc.query(sql, params, ROW_MAPPER));
+        Collections.reverse(result);
+        return result;
     }
 
-    public Message getByIdOrElseThrow(long id){
-        return getById(id).orElseThrow();
+    public Message getByIdOrElseThrow(long id) {
+        return getById(id).orElseThrow(() -> new IllegalArgumentException("Message not found: " + id));
     }
 
-    public Optional<Message> getById(long id){
+    public Optional<Message> getById(long id) {
         var result = jdbc.query(
                 "SELECT * FROM messages WHERE id = :id",
                 new MapSqlParameterSource("id", id),
                 ROW_MAPPER
         );
-
         return result.stream().findFirst();
     }
 
@@ -55,9 +66,23 @@ public class MessageRepository {
                 .addValue("channelId", request.channelId());
 
         var keyHolder = new GeneratedKeyHolder();
-
         jdbc.update(sql, params, keyHolder, new String[]{"id"});
-
         return keyHolder.getKey().longValue();
+    }
+
+    public void update(long id, String content) {
+        jdbc.update(
+                "UPDATE messages SET content = :content WHERE id = :id",
+                new MapSqlParameterSource()
+                        .addValue("id", id)
+                        .addValue("content", content)
+        );
+    }
+
+    public void delete(long id) {
+        jdbc.update(
+                "DELETE FROM messages WHERE id = :id",
+                new MapSqlParameterSource("id", id)
+        );
     }
 }
