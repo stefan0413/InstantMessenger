@@ -105,7 +105,7 @@ export class ChatSocketClient {
     }
   }
 
-  sendMessage(payload: { content: string; userId: string; channelId: string }): boolean {
+  sendMessage(payload: { content: string; userId: string; channelId: string; fileUrl?: string; fileName?: string }): boolean {
     return this.sendFrame(
       encodeFrame(
         "SEND",
@@ -114,9 +114,11 @@ export class ChatSocketClient {
           "content-type": "application/json",
         },
         JSON.stringify({
-          content: payload.content,
+          content: payload.content || null,
           userId: Number(payload.userId),
           channelId: Number(payload.channelId),
+          fileUrl: payload.fileUrl ?? null,
+          fileName: payload.fileName ?? null,
         }),
       ),
     );

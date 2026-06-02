@@ -5,4 +5,6 @@ export interface Message {
   text: string;
   createdAt: string;
   isMine?: boolean;
+  fileUrl?: string;
+  fileName?: string;
 }

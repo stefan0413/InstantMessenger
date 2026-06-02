@@ -17,3 +17,11 @@ app:
   jwt:
     secret: replace-this-dev-secret-with-a-long-random-value
     expiration-seconds: 86400
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET:your-messenger-bucket}
+    region: ${AWS_REGION:eu-central-1}
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+    presigned-url-expiry-minutes: 5

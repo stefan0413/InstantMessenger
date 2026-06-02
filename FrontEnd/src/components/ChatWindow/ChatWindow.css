@@ -189,6 +189,36 @@
   cursor: not-allowed;
 }
 
+.chat-window__file-input {
+  display: none;
+}
+
+.chat-window__attach-btn {
+  background: #f1f5f9;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  color: #6b7280;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 18px;
+  height: 44px;
+  line-height: 1;
+  padding: 0;
+  transition: background 160ms ease;
+  width: 44px;
+}
+
+.chat-window__attach-btn:hover:not(:disabled) {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #4f46e5;
+}
+
+.chat-window__attach-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 @media (max-width: 760px) {
   .chat-window__header {
     padding: 14px 16px;

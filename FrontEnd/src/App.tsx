@@ -221,7 +221,7 @@ function App() {
     void loadMessages(channelId, oldestMessageId);
   }
 
-  function handleSendMessage(text: string): void {
+  function handleSendMessage(text: string, fileUrl?: string, fileName?: string): void {
     if (!activeChannel || !socketRef.current || !currentUserId) {
       return;
     }
@@ -230,6 +230,8 @@ function App() {
       content: text,
       userId: currentUserId,
       channelId: activeChannel.id,
+      fileUrl,
+      fileName,
     });
 
     if (!wasSent) {
