@@ -56,14 +56,16 @@ public class MessageRepository {
 
     public long save(MessageRequest request) {
         var sql = """
-            INSERT INTO messages (content, user_id, channel_id)
-            VALUES (:content, :userId, :channelId)
+            INSERT INTO messages (content, user_id, channel_id, file_url, file_name)
+            VALUES (:content, :userId, :channelId, :fileUrl, :fileName)
         """;
 
         var params = new MapSqlParameterSource()
                 .addValue("content", request.content())
                 .addValue("userId", request.userId())
-                .addValue("channelId", request.channelId());
+                .addValue("channelId", request.channelId())
+                .addValue("fileUrl", request.fileUrl())
+                .addValue("fileName", request.fileName());
 
         var keyHolder = new GeneratedKeyHolder();
         jdbc.update(sql, params, keyHolder, new String[]{"id"});

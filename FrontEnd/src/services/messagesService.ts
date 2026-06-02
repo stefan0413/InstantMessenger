@@ -3,10 +3,12 @@ import { apiUrl } from "./apiConfig";
 
 interface BackendMessage {
   id: number;
-  content: string;
+  content: string | null;
   userId: number;
   channelId: number;
   time: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
 }
 
 export interface ChannelEvent {
@@ -19,9 +21,11 @@ export function mapBackendMessage(message: BackendMessage, currentUserId: string
     id: String(message.id),
     channelId: String(message.channelId),
     senderId: String(message.userId),
-    text: message.content,
+    text: message.content ?? "",
     createdAt: message.time,
     isMine: String(message.userId) === currentUserId,
+    fileUrl: message.fileUrl ?? undefined,
+    fileName: message.fileName ?? undefined,
   };
 }
 
@@ -33,7 +37,7 @@ export function isBackendMessage(value: unknown): value is BackendMessage {
   const candidate = value as Partial<BackendMessage>;
   return (
     typeof candidate.id === "number" &&
-    typeof candidate.content === "string" &&
+    (candidate.content === null || typeof candidate.content === "string") &&
     typeof candidate.userId === "number" &&
     typeof candidate.channelId === "number" &&
     typeof candidate.time === "string"

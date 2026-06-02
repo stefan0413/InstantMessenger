@@ -15,7 +15,9 @@ public class MessageRowMapper implements RowMapper<Message> {
                 rs.getString("content"),
                 rs.getLong("user_id"),
                 rs.getLong("channel_id"),
-                rs.getTimestamp("timestamp").toLocalDateTime()
+                rs.getTimestamp("timestamp").toLocalDateTime(),
+                rs.getString("file_url"),
+                rs.getString("file_name")
         );
     }
 }

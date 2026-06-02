@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
+import { uploadFile } from "../../services/filesService";
 import { searchMessages } from "../../services/searchService";
 import type { Channel } from "../../types/channel";
 import type { Message } from "../../types/message";
@@ -14,7 +15,7 @@ interface ChatWindowProps {
   currentUserId: string;
   socketStatus: "connecting" | "connected" | "disconnected" | "error";
   error: string | null;
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string, fileUrl?: string, fileName?: string) => void;
   onLoadOlder: (channelId: string) => void;
 }
 
@@ -23,7 +24,10 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Message[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setSearchQuery("");
@@ -63,6 +67,24 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
   const messagesToRender: Message[] = isSearchActive
     ? searchResults ?? []
     : activeChannel?.messages ?? [];
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const { publicUrl, fileName } = await uploadFile(file);
+      onSendMessage("", publicUrl, fileName);
+    } catch {
+      setUploadError("File upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -142,11 +164,28 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
       </section>
 
       <form className="chat-window__composer" onSubmit={handleSubmit}>
-        {(error || socketStatus !== "connected") && (
+        {(error || uploadError || socketStatus !== "connected") && (
           <div className="chat-window__composer-status">
-            {error ?? `WebSocket ${socketStatus}`}
+            {uploadError ?? error ?? `WebSocket ${socketStatus}`}
           </div>
         )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="chat-window__file-input"
+          onChange={handleFileChange}
+          disabled={isUploading || socketStatus !== "connected"}
+          aria-label="Attach file"
+        />
+        <button
+          type="button"
+          className="chat-window__attach-btn"
+          disabled={isUploading || socketStatus !== "connected"}
+          onClick={() => fileInputRef.current?.click()}
+          title="Attach file"
+        >
+          {isUploading ? "..." : "📎"}
+        </button>
         <input
           value={messageText}
           onChange={(event) => setMessageText(event.target.value)}

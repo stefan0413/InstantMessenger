@@ -74,6 +74,11 @@ public class MessageService {
     }
 
     private void validateMessageRequest(MessageRequest request) {
+        boolean hasContent = request.content() != null && !request.content().isBlank();
+        boolean hasFile = request.fileUrl() != null && !request.fileUrl().isBlank();
+        if (!hasContent && !hasFile) {
+            throw new IllegalArgumentException("Message must have content or a file attachment");
+        }
         if (!channelRepository.existsById(request.channelId())) {
             log.warn("Rejected message — channel {} does not exist", request.channelId());
             throw new IllegalArgumentException("Channel not found: " + request.channelId());

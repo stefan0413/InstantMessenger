@@ -68,3 +68,45 @@
   background: #fcd34d;
   color: #78350f;
 }
+
+.message-bubble__image-link {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.message-bubble__image {
+  border-radius: 10px;
+  display: block;
+  max-height: 260px;
+  max-width: 260px;
+  object-fit: contain;
+}
+
+.message-bubble__file {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  color: inherit;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+
+.message-bubble__file:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.message-bubble__file-icon {
+  flex: 0 0 auto;
+  font-size: 20px;
+}
+
+.message-bubble__file-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
