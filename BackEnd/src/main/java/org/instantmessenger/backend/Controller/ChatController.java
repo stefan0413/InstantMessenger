@@ -66,9 +66,6 @@ public class ChatController {
         String sessionId = headerAccessor.getSessionId();
         log.info("User {} registering presence for session {}", request.userId(), sessionId);
         presenceService.register(sessionId, request.userId());
-        // Broadcast ONLINE for every currently online user (including the new one).
-        // Late-joining subscribers miss earlier broadcasts; re-broadcasting is idempotent
-        // on the frontend because onlineUserIds is a Set.
         presenceService.getOnlineUserIds()
                 .forEach(uid -> messagingService.broadcastPresence(new PresenceEvent(uid, "ONLINE")));
     }

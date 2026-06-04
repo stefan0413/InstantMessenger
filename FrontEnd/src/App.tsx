@@ -3,7 +3,7 @@ import { ChannelList } from "./components/ChannelList/ChannelList";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import { NewDirectModal } from "./components/NewDirectModal/NewDirectModal";
 import { NewGroupModal } from "./components/NewGroupModal/NewGroupModal";
-import { createChannel, getChannels, getUsersFromChannels } from "./services/channelsService";
+import { createChannel, getChannels, getUsersFromChannels, isBackendChannel, mapBackendChannel } from "./services/channelsService";
 import { ChatSocketClient } from "./services/chatSocketService";
 import type { PresenceEvent } from "./services/chatSocketService";
 import { getMessages, isBackendMessage, mapBackendMessage } from "./services/messagesService";
@@ -86,6 +86,15 @@ function App() {
         else next.delete(uid);
         return next;
       });
+    });
+    socket.subscribeToUserNotifications(currentUserId, (event) => {
+      if (event.type === "CHANNEL_NEW" && isBackendChannel(event.data)) {
+        const newChannel = mapBackendChannel(event.data, currentUserId);
+        setChannels((prev) => {
+          if (prev.some((c) => c.id === newChannel.id)) return prev;
+          return [newChannel, ...prev];
+        });
+      }
     });
     socket.sendUserConnect(currentUserId);
     socketRef.current = socket;

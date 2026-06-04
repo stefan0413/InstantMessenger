@@ -1,6 +1,7 @@
 package org.instantmessenger.backend.service;
 
 import org.instantmessenger.backend.DTO.ChannelEvent;
+import org.instantmessenger.backend.DTO.ChannelResponse;
 import org.instantmessenger.backend.DTO.MessageEditEvent;
 import org.instantmessenger.backend.DTO.PresenceEvent;
 import org.instantmessenger.backend.DTO.TypingEvent;
@@ -17,6 +18,7 @@ public class MessagingService {
 
     private static final Logger log = LoggerFactory.getLogger(MessagingService.class);
     private static final String CHANNEL_TOPIC = "/topic/channel/%d";
+    private static final String USER_TOPIC = "/topic/user/%d";
     private static final String PRESENCE_TOPIC = "/topic/presence";
 
     private final SimpMessagingTemplate messagingTemplate;
@@ -46,6 +48,14 @@ public class MessagingService {
     public void broadcastTyping(TypingEvent event) {
         var destination = String.format(CHANNEL_TOPIC, event.channelId());
         messagingTemplate.convertAndSend(destination, new ChannelEvent("TYPING", event));
+    }
+
+    public void broadcastChannelCreated(ChannelResponse channel) {
+        channel.memberIds().forEach(memberId -> {
+            var destination = String.format(USER_TOPIC, memberId);
+            log.debug("Notifying user {} of new channel {}", memberId, channel.id());
+            messagingTemplate.convertAndSend(destination, new ChannelEvent("CHANNEL_NEW", channel));
+        });
     }
 
     public void broadcastPresence(PresenceEvent event) {

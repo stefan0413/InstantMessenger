@@ -53,8 +53,6 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
       }
       if (channelId) onTyping(channelId, false);
     };
-    // channelId is captured at effect creation; onTyping is stable (useCallback in App)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChannel?.id]);
 
   useEffect(() => {

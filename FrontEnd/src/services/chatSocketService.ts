@@ -138,6 +138,16 @@ export class ChatSocketClient {
     );
   }
 
+  subscribeToUserNotifications(userId: string, handler: EventHandler): void {
+    const destination = `/topic/user/${userId}`;
+    this.handlers.set(destination, handler);
+    const id = `user-${userId}`;
+    if (!this.subscriptionIds.has(id)) {
+      this.sendFrame(encodeFrame("SUBSCRIBE", { id, destination }));
+      this.subscriptionIds.add(id);
+    }
+  }
+
   subscribeToPresence(handler: (event: PresenceEvent) => void): void {
     this.presenceHandler = handler;
     if (!this.subscriptionIds.has("sub-presence")) {
