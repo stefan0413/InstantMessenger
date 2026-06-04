@@ -12,7 +12,7 @@ interface BackendMessage {
 }
 
 export interface ChannelEvent {
-  type: "MESSAGE_NEW" | "MESSAGE_EDIT" | "MESSAGE_DELETE" | "TYPING";
+  type: "MESSAGE_NEW" | "MESSAGE_EDIT" | "MESSAGE_DELETE" | "TYPING" | "CHANNEL_NEW";
   data: unknown;
 }
 

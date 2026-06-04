@@ -15,10 +15,12 @@ public class ChannelService {
 
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
+    private final MessagingService messagingService;
 
-    public ChannelService(ChannelRepository channelRepository, UserRepository userRepository) {
+    public ChannelService(ChannelRepository channelRepository, UserRepository userRepository, MessagingService messagingService) {
         this.channelRepository = channelRepository;
         this.userRepository = userRepository;
+        this.messagingService = messagingService;
     }
 
     public ChannelResponse create(ChannelRequest request, long currentUserId) {
@@ -33,7 +35,9 @@ public class ChannelService {
                 .stream()
                 .map(user -> new UserView(user.id(), user.username(), user.email()))
                 .toList();
-        return new ChannelResponse(channel.id(), channel.name(), request.memberIds(), members);
+        var response = new ChannelResponse(channel.id(), channel.name(), request.memberIds(), members);
+        messagingService.broadcastChannelCreated(response);
+        return response;
     }
 
     public List<ChannelResponse> getForUser(long userId) {

@@ -12,6 +12,8 @@ interface ChannelListProps {
   onSelectChannel: (channelId: string) => void;
   onNewChatClick: () => void;
   onNewGroupClick: () => void;
+  currentUserId: string;
+  onlineUserIds: Set<string>;
 }
 
 export function ChannelList({
@@ -23,6 +25,8 @@ export function ChannelList({
   onSelectChannel,
   onNewChatClick,
   onNewGroupClick,
+  currentUserId,
+  onlineUserIds,
 }: ChannelListProps) {
   return (
     <aside className="channel-list">
@@ -60,6 +64,8 @@ export function ChannelList({
               users={users}
               isActive={channel.id === activeChannelId}
               onSelect={onSelectChannel}
+              currentUserId={currentUserId}
+              onlineUserIds={onlineUserIds}
             />
           ))
         ) : (

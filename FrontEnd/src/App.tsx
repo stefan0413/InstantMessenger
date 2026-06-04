@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChannelList } from "./components/ChannelList/ChannelList";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import { NewDirectModal } from "./components/NewDirectModal/NewDirectModal";
 import { NewGroupModal } from "./components/NewGroupModal/NewGroupModal";
-import { createChannel, getChannels, getUsersFromChannels } from "./services/channelsService";
+import { createChannel, getChannels, getUsersFromChannels, isBackendChannel, mapBackendChannel } from "./services/channelsService";
 import { ChatSocketClient } from "./services/chatSocketService";
+import type { PresenceEvent } from "./services/chatSocketService";
 import { getMessages, isBackendMessage, mapBackendMessage } from "./services/messagesService";
 import { searchUsers } from "./services/usersService";
 import type { Channel } from "./types/channel";
@@ -14,6 +15,22 @@ import LoginForm from "./features/auth/components/LoginForm";
 import RegisterForm from "./features/auth/components/RegisterForm";
 import UserStatus from "./features/auth/components/UserStatus";
 import { useAuth } from "./features/auth/context/AuthContext";
+
+interface TypingEventData {
+  userId: number;
+  channelId: number;
+  typing: boolean;
+}
+
+function isTypingEventData(data: unknown): data is TypingEventData {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "userId" in data &&
+    "channelId" in data &&
+    "typing" in data
+  );
+}
 
 function App() {
   const { isAuthenticated, user } = useAuth();
@@ -31,6 +48,8 @@ function App() {
   const [sendError, setSendError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const [typingUsers, setTypingUsers] = useState<Record<string, Set<string>>>({});
   const socketRef = useRef<ChatSocketClient | null>(null);
   const currentUserId = user ? String(user.id) : "";
 
@@ -52,11 +71,32 @@ function App() {
     if (!isAuthenticated || !currentUserId) {
       socketRef.current?.disconnect();
       socketRef.current = null;
+      setOnlineUserIds(new Set());
+      setTypingUsers({});
       return;
     }
 
     const socket = new ChatSocketClient();
     socket.connect(setSocketStatus);
+    socket.subscribeToPresence((event: PresenceEvent) => {
+      setOnlineUserIds((prev) => {
+        const next = new Set(prev);
+        const uid = String(event.userId);
+        if (event.status === "ONLINE") next.add(uid);
+        else next.delete(uid);
+        return next;
+      });
+    });
+    socket.subscribeToUserNotifications(currentUserId, (event) => {
+      if (event.type === "CHANNEL_NEW" && isBackendChannel(event.data)) {
+        const newChannel = mapBackendChannel(event.data, currentUserId);
+        setChannels((prev) => {
+          if (prev.some((c) => c.id === newChannel.id)) return prev;
+          return [newChannel, ...prev];
+        });
+      }
+    });
+    socket.sendUserConnect(currentUserId);
     socketRef.current = socket;
 
     return () => socket.disconnect();
@@ -70,28 +110,34 @@ function App() {
 
     channels.forEach((channel) => {
       socket.subscribeToChannel(channel.id, (event) => {
-        if (event.type !== "MESSAGE_NEW" || !isBackendMessage(event.data)) {
+        if (event.type === "MESSAGE_NEW") {
+          if (!isBackendMessage(event.data)) return;
+
+          const message = mapBackendMessage(event.data, currentUserId);
+          setChannels((currentChannels) =>
+            currentChannels.map((currentChannel) => {
+              if (currentChannel.id !== message.channelId) return currentChannel;
+              const alreadyExists = currentChannel.messages.some((item) => item.id === message.id);
+              const messages = alreadyExists ? currentChannel.messages : [...currentChannel.messages, message];
+              return { ...currentChannel, messages, lastMessage: message.text, updatedAt: message.createdAt };
+            }),
+          );
           return;
         }
 
-        const message = mapBackendMessage(event.data, currentUserId);
-        setChannels((currentChannels) =>
-          currentChannels.map((currentChannel) => {
-            if (currentChannel.id !== message.channelId) {
-              return currentChannel;
-            }
-
-            const alreadyExists = currentChannel.messages.some((item) => item.id === message.id);
-            const messages = alreadyExists ? currentChannel.messages : [...currentChannel.messages, message];
-
-            return {
-              ...currentChannel,
-              messages,
-              lastMessage: message.text,
-              updatedAt: message.createdAt,
-            };
-          }),
-        );
+        if (event.type === "TYPING" && isTypingEventData(event.data)) {
+          const { userId, channelId, typing } = event.data;
+          const uid = String(userId);
+          const cid = String(channelId);
+          setTypingUsers((prev) => {
+            const next = { ...prev };
+            const set = new Set(next[cid] ?? []);
+            if (typing) set.add(uid);
+            else set.delete(uid);
+            next[cid] = set;
+            return next;
+          });
+        }
       });
     });
   }, [channels, currentUserId]);
@@ -114,6 +160,16 @@ function App() {
   );
   const activeChannel = channels.find((channel) => channel.id === activeChannelId);
   const scopedUsers = useMemo(() => getUsersFromChannels(channels), [channels]);
+
+  const activeChannelTypingUserIds = useMemo(() => {
+    const set = new Set(typingUsers[activeChannelId ?? ""] ?? []);
+    set.delete(currentUserId);
+    return set;
+  }, [typingUsers, activeChannelId, currentUserId]);
+
+  const handleSendTyping = useCallback((channelId: string, isTyping: boolean) => {
+    socketRef.current?.sendTyping({ userId: currentUserId, channelId, typing: isTyping });
+  }, [currentUserId]);
   const usersForCreation = useMemo(() => {
     const byId = new Map<string, User>();
     [...availableUsers, ...scopedUsers].forEach((candidate) => {
@@ -366,6 +422,8 @@ function App() {
           onSelectChannel={setActiveChannelId}
           onNewChatClick={() => void openDirectModal()}
           onNewGroupClick={() => void openGroupModal()}
+          currentUserId={currentUserId}
+          onlineUserIds={onlineUserIds}
         />
 
         <ChatWindow
@@ -376,6 +434,8 @@ function App() {
           error={sendError}
           onSendMessage={handleSendMessage}
           onLoadOlder={handleLoadOlder}
+          typingUserIds={activeChannelTypingUserIds}
+          onTyping={handleSendTyping}
         />
       </div>
 

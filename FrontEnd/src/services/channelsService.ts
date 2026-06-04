@@ -2,17 +2,28 @@ import type { Channel } from "../types/channel";
 import type { User } from "../types/user";
 import { apiUrl } from "./apiConfig";
 
-interface BackendUser {
+export interface BackendUser {
   id: number;
   username: string;
   email: string;
 }
 
-interface BackendChannel {
+export interface BackendChannel {
   id: number;
   name: string;
   memberIds: number[];
   members: BackendUser[];
+}
+
+export function isBackendChannel(value: unknown): value is BackendChannel {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    "name" in value &&
+    "memberIds" in value &&
+    "members" in value
+  );
 }
 
 function avatarForUser(userId: string): string {
@@ -28,7 +39,7 @@ export function mapBackendUser(user: BackendUser): User {
   };
 }
 
-function mapBackendChannel(channel: BackendChannel, currentUserId?: string): Channel {
+export function mapBackendChannel(channel: BackendChannel, currentUserId?: string): Channel {
   const members = channel.members.map(mapBackendUser);
   const participantIds = channel.memberIds.map(String);
   const isDirect = participantIds.length === 2;

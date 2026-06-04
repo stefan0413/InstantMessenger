@@ -7,6 +7,8 @@ interface ChannelItemProps {
   users: User[];
   isActive: boolean;
   onSelect: (channelId: string) => void;
+  currentUserId: string;
+  onlineUserIds: Set<string>;
 }
 
 function formatTime(value: string): string {
@@ -16,8 +18,12 @@ function formatTime(value: string): string {
   }).format(new Date(value));
 }
 
-export function ChannelItem({ channel, users, isActive, onSelect }: ChannelItemProps) {
+export function ChannelItem({ channel, users, isActive, onSelect, currentUserId, onlineUserIds }: ChannelItemProps) {
   const participants = users.filter((user) => channel.participantIds.includes(user.id));
+  const otherParticipantId = channel.type === "direct"
+    ? channel.participantIds.find((id) => id !== currentUserId)
+    : undefined;
+  const isOnline = !!otherParticipantId && onlineUserIds.has(otherParticipantId);
 
   return (
     <button
@@ -31,6 +37,7 @@ export function ChannelItem({ channel, users, isActive, onSelect }: ChannelItemP
         ) : (
           participants.slice(0, 3).map((user) => <img key={user.id} src={user.avatarUrl} alt={user.name} />)
         )}
+        {isOnline && <span className="channel-item__online-dot" aria-label="Online" />}
       </div>
 
       <div className="channel-item__content">

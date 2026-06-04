@@ -66,7 +66,8 @@ public class ChatController {
         String sessionId = headerAccessor.getSessionId();
         log.info("User {} registering presence for session {}", request.userId(), sessionId);
         presenceService.register(sessionId, request.userId());
-        messagingService.broadcastPresence(new PresenceEvent(request.userId(), "ONLINE"));
+        presenceService.getOnlineUserIds()
+                .forEach(uid -> messagingService.broadcastPresence(new PresenceEvent(uid, "ONLINE")));
     }
 
     @SubscribeMapping("/channel/{channelId}")
