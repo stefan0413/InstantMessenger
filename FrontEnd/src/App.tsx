@@ -306,7 +306,10 @@ function App() {
         currentUserId,
       });
 
-      setChannels((currentChannels) => [newChannel, ...currentChannels]);
+      setChannels((currentChannels) => {
+        if (currentChannels.some((c) => c.id === newChannel.id)) return currentChannels;
+        return [newChannel, ...currentChannels];
+      });
       setActiveChannelId(newChannel.id);
       setSearchQuery("");
       setCreateError(null);
@@ -340,7 +343,10 @@ function App() {
         currentUserId,
       });
 
-      setChannels((currentChannels) => [newChannel, ...currentChannels]);
+      setChannels((currentChannels) => {
+        if (currentChannels.some((c) => c.id === newChannel.id)) return currentChannels;
+        return [newChannel, ...currentChannels];
+      });
       setActiveChannelId(newChannel.id);
       setSearchQuery("");
       setCreateError(null);
