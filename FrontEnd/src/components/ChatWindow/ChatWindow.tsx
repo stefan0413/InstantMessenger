@@ -17,9 +17,17 @@ interface ChatWindowProps {
   error: string | null;
   onSendMessage: (text: string, fileUrl?: string, fileName?: string) => void;
   onLoadOlder: (channelId: string) => void;
+  typingUserIds: Set<string>;
+  onTyping: (channelId: string, isTyping: boolean) => void;
 }
 
-export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, error, onSendMessage, onLoadOlder }: ChatWindowProps) {
+function formatTypingLabel(names: string[]): string {
+  if (names.length === 1) return `${names[0]} is typing…`;
+  if (names.length === 2) return `${names[0]} and ${names[1]} are typing…`;
+  return "Several people are typing…";
+}
+
+export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, error, onSendMessage, onLoadOlder, typingUserIds, onTyping }: ChatWindowProps) {
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Message[] | null>(null);
@@ -28,11 +36,25 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setSearchQuery("");
     setSearchResults(null);
     setIsSearching(false);
+  }, [activeChannel?.id]);
+
+  useEffect(() => {
+    const channelId = activeChannel?.id;
+    return () => {
+      if (typingTimerRef.current !== null) {
+        clearTimeout(typingTimerRef.current);
+        typingTimerRef.current = null;
+      }
+      if (channelId) onTyping(channelId, false);
+    };
+    // channelId is captured at effect creation; onTyping is stable (useCallback in App)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChannel?.id]);
 
   useEffect(() => {
@@ -68,6 +90,21 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
     ? searchResults ?? []
     : activeChannel?.messages ?? [];
 
+  function handleInputChange(event: ChangeEvent<HTMLInputElement>): void {
+    setMessageText(event.target.value);
+    if (!activeChannel) return;
+
+    if (typingTimerRef.current === null) {
+      onTyping(activeChannel.id, true);
+    } else {
+      clearTimeout(typingTimerRef.current);
+    }
+    typingTimerRef.current = setTimeout(() => {
+      typingTimerRef.current = null;
+      if (activeChannel) onTyping(activeChannel.id, false);
+    }, 3000);
+  }
+
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>): Promise<void> {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -90,13 +127,21 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
     event.preventDefault();
     const trimmedText = messageText.trim();
 
-    if (!trimmedText) {
-      return;
+    if (!trimmedText) return;
+
+    if (typingTimerRef.current !== null) {
+      clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
     }
+    if (activeChannel) onTyping(activeChannel.id, false);
 
     onSendMessage(trimmedText);
     setMessageText("");
   }
+
+  const typingNames = [...typingUserIds].map(
+    (id) => users.find((u) => u.id === id)?.name ?? "Someone",
+  );
 
   if (!activeChannel) {
     return (
@@ -163,6 +208,10 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
         <div ref={messagesEndRef} />
       </section>
 
+      <div className="chat-window__typing-indicator" aria-live="polite">
+        {typingNames.length > 0 && <span>{formatTypingLabel(typingNames)}</span>}
+      </div>
+
       <form className="chat-window__composer" onSubmit={handleSubmit}>
         {(error || uploadError || socketStatus !== "connected") && (
           <div className="chat-window__composer-status">
@@ -188,7 +237,7 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
         </button>
         <input
           value={messageText}
-          onChange={(event) => setMessageText(event.target.value)}
+          onChange={handleInputChange}
           placeholder={`Message ${activeChannel.name}`}
         />
         <button disabled={!messageText.trim() || socketStatus !== "connected"} type="submit">

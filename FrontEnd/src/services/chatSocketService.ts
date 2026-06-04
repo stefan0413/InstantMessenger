@@ -4,6 +4,17 @@ import { WS_URL } from "./apiConfig";
 type EventHandler = (event: ChannelEvent) => void;
 type StatusHandler = (status: "connecting" | "connected" | "disconnected" | "error") => void;
 
+export interface PresenceEvent {
+  userId: number;
+  status: "ONLINE" | "OFFLINE";
+}
+
+export interface TypingPayload {
+  userId: string;
+  channelId: string;
+  typing: boolean;
+}
+
 function encodeFrame(command: string, headers: Record<string, string> = {}, body = ""): string {
   const allHeaders = body ? { ...headers, "content-length": String(new Blob([body]).size) } : headers;
   const headerLines = Object.entries(allHeaders).map(([key, value]) => `${key}:${value}`);
@@ -34,6 +45,7 @@ function decodeFrames(chunk: string): Array<{ command: string; headers: Record<s
 export class ChatSocketClient {
   private socket?: WebSocket;
   private handlers = new Map<string, EventHandler>();
+  private presenceHandler?: (event: PresenceEvent) => void;
   private connected = false;
   private pendingFrames: string[] = [];
   private subscriptionIds = new Set<string>();
@@ -74,9 +86,11 @@ export class ChatSocketClient {
 
         if (frame.command === "MESSAGE") {
           const destination = frame.headers.destination;
-          const handler = destination ? this.handlers.get(destination) : undefined;
-          if (handler) {
-            handler(JSON.parse(frame.body));
+          if (destination === "/topic/presence" && this.presenceHandler) {
+            this.presenceHandler(JSON.parse(frame.body));
+          } else {
+            const handler = destination ? this.handlers.get(destination) : undefined;
+            if (handler) handler(JSON.parse(frame.body));
           }
         }
       }
@@ -120,6 +134,38 @@ export class ChatSocketClient {
           fileUrl: payload.fileUrl ?? null,
           fileName: payload.fileName ?? null,
         }),
+      ),
+    );
+  }
+
+  subscribeToPresence(handler: (event: PresenceEvent) => void): void {
+    this.presenceHandler = handler;
+    if (!this.subscriptionIds.has("sub-presence")) {
+      this.sendFrame(encodeFrame("SUBSCRIBE", { id: "sub-presence", destination: "/topic/presence" }));
+      this.subscriptionIds.add("sub-presence");
+    }
+  }
+
+  sendTyping(payload: TypingPayload): void {
+    this.sendFrame(
+      encodeFrame(
+        "SEND",
+        { destination: "/app/chat.typing", "content-type": "application/json" },
+        JSON.stringify({
+          userId: Number(payload.userId),
+          channelId: Number(payload.channelId),
+          typing: payload.typing,
+        }),
+      ),
+    );
+  }
+
+  sendUserConnect(userId: string): void {
+    this.sendFrame(
+      encodeFrame(
+        "SEND",
+        { destination: "/app/user.connect", "content-type": "application/json" },
+        JSON.stringify({ userId: Number(userId) }),
       ),
     );
   }
