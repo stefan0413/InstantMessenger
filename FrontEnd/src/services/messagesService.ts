@@ -1,5 +1,5 @@
 import type { Message } from "../types/message";
-import { apiUrl } from "./apiConfig";
+import { apiUrl, authHeaders } from "./apiConfig";
 
 interface BackendMessage {
   id: number;
@@ -59,7 +59,9 @@ export async function getMessages(params: {
     query.set("before", params.before);
   }
 
-  const response = await fetch(apiUrl(`/messages?${query}`));
+  const response = await fetch(apiUrl(`/messages?${query}`), {
+    headers: authHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error("Could not load messages");

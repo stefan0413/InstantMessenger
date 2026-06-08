@@ -1,6 +1,7 @@
 package org.instantmessenger.backend.Controller;
 
 import org.instantmessenger.backend.DTO.*;
+import org.instantmessenger.backend.config.AuthenticatedUser;
 import org.instantmessenger.backend.service.MessageService;
 import org.instantmessenger.backend.service.MessagingService;
 import org.instantmessenger.backend.service.PresenceService;
@@ -39,41 +40,47 @@ public class ChatController {
     }
 
     @MessageMapping("/chat.send")
-    public void sendMessage(@Payload MessageRequest request) {
-        log.info("Received message from user {} for channel {}", request.userId(), request.channelId());
-        messageService.processAndBroadcast(request);
+    public void sendMessage(@Payload MessageRequest request, SimpMessageHeaderAccessor headerAccessor) {
+        long currentUserId = AuthenticatedUser.from(headerAccessor);
+        log.info("Received message from user {} for channel {}", currentUserId, request.channelId());
+        messageService.processAndBroadcast(request, currentUserId);
     }
 
     @MessageMapping("/chat.edit")
-    public void editMessage(@Payload MessageEditRequest request) {
-        log.info("Edit request for message {} by user {}", request.messageId(), request.userId());
-        messageService.editMessage(request);
+    public void editMessage(@Payload MessageEditRequest request, SimpMessageHeaderAccessor headerAccessor) {
+        long currentUserId = AuthenticatedUser.from(headerAccessor);
+        log.info("Edit request for message {} by user {}", request.messageId(), currentUserId);
+        messageService.editMessage(request, currentUserId);
     }
 
     @MessageMapping("/chat.delete")
-    public void deleteMessage(@Payload MessageDeleteRequest request) {
-        log.info("Delete request for message {} by user {}", request.messageId(), request.userId());
-        messageService.deleteMessage(request);
+    public void deleteMessage(@Payload MessageDeleteRequest request, SimpMessageHeaderAccessor headerAccessor) {
+        long currentUserId = AuthenticatedUser.from(headerAccessor);
+        log.info("Delete request for message {} by user {}", request.messageId(), currentUserId);
+        messageService.deleteMessage(request, currentUserId);
     }
 
     @MessageMapping("/chat.typing")
-    public void typing(@Payload TypingEvent event) {
-        messagingService.broadcastTyping(event);
+    public void typing(@Payload TypingEvent event, SimpMessageHeaderAccessor headerAccessor) {
+        long currentUserId = AuthenticatedUser.from(headerAccessor);
+        messageService.ensureChannelMember(event.channelId(), currentUserId);
+        messagingService.broadcastTyping(new TypingEvent(currentUserId, event.channelId(), event.typing()));
     }
 
     @MessageMapping("/user.connect")
-    public void onUserConnect(@Payload UserConnectRequest request, SimpMessageHeaderAccessor headerAccessor) {
+    public void onUserConnect(SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
-        log.info("User {} registering presence for session {}", request.userId(), sessionId);
-        presenceService.register(sessionId, request.userId());
+        long currentUserId = AuthenticatedUser.from(headerAccessor);
+        log.info("User {} registering presence for session {}", currentUserId, sessionId);
+        presenceService.register(sessionId, currentUserId);
         presenceService.getOnlineUserIds()
                 .forEach(uid -> messagingService.broadcastPresence(new PresenceEvent(uid, "ONLINE")));
     }
 
     @SubscribeMapping("/channel/{channelId}")
-    public List<ChannelEvent> onChannelSubscribe(@DestinationVariable long channelId) {
+    public List<ChannelEvent> onChannelSubscribe(@DestinationVariable long channelId, SimpMessageHeaderAccessor headerAccessor) {
         log.debug("Client subscribed to channel {}, sending history", channelId);
-        return messageService.getByChannelId(channelId, 50, null).stream()
+        return messageService.getByChannelId(channelId, AuthenticatedUser.from(headerAccessor), 50, null).stream()
                 .map(m -> new ChannelEvent("MESSAGE_NEW", m))
                 .toList();
     }

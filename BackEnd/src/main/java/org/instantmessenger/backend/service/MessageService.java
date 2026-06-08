@@ -34,16 +34,23 @@ public class MessageService {
         this.messagingService = messagingService;
     }
 
-    public List<Message> getByChannelId(Long channelId, int limit, Long before) {
+    public List<Message> getByChannelId(Long channelId, long currentUserId, int limit, Long before) {
+        ensureChannelMember(channelId, currentUserId);
         return messageRepository.findByChannelId(channelId, Math.min(limit, 100), before);
     }
 
-    public void processAndBroadcast(MessageRequest request) {
-        log.debug("Processing message for channel {} from user {}", request.channelId(), request.userId());
+    public void ensureChannelMember(long channelId, long currentUserId) {
+        if (!channelRepository.isMember(channelId, currentUserId)) {
+            throw new IllegalArgumentException("User is not a member of this channel");
+        }
+    }
 
-        validateMessageRequest(request);
+    public void processAndBroadcast(MessageRequest request, long currentUserId) {
+        log.debug("Processing message for channel {} from user {}", request.channelId(), currentUserId);
 
-        var id = messageRepository.save(request);
+        validateMessageRequest(request, currentUserId);
+
+        var id = messageRepository.save(request, currentUserId);
         log.debug("Message saved with id {}", id);
 
         var message = messageRepository.getByIdOrElseThrow(id);
@@ -52,28 +59,28 @@ public class MessageService {
         log.info("Message {} processed and broadcast to channel {}", id, request.channelId());
     }
 
-    public void editMessage(MessageEditRequest request) {
+    public void editMessage(MessageEditRequest request, long currentUserId) {
         var message = messageRepository.getByIdOrElseThrow(request.messageId());
-        if (message.userId() != request.userId()) {
+        if (message.userId() != currentUserId) {
             throw new IllegalArgumentException("Cannot edit another user's message");
         }
         messageRepository.update(request.messageId(), request.content());
         messagingService.broadcastEdit(message.channelId(),
                 new MessageEditEvent(request.messageId(), message.channelId(), request.content()));
-        log.info("Message {} edited by user {}", request.messageId(), request.userId());
+        log.info("Message {} edited by user {}", request.messageId(), currentUserId);
     }
 
-    public void deleteMessage(MessageDeleteRequest request) {
+    public void deleteMessage(MessageDeleteRequest request, long currentUserId) {
         var message = messageRepository.getByIdOrElseThrow(request.messageId());
-        if (message.userId() != request.userId()) {
+        if (message.userId() != currentUserId) {
             throw new IllegalArgumentException("Cannot delete another user's message");
         }
         messageRepository.delete(request.messageId());
         messagingService.broadcastDelete(message.channelId(), request.messageId());
-        log.info("Message {} deleted by user {}", request.messageId(), request.userId());
+        log.info("Message {} deleted by user {}", request.messageId(), currentUserId);
     }
 
-    private void validateMessageRequest(MessageRequest request) {
+    private void validateMessageRequest(MessageRequest request, long currentUserId) {
         boolean hasContent = request.content() != null && !request.content().isBlank();
         boolean hasFile = request.fileUrl() != null && !request.fileUrl().isBlank();
         if (!hasContent && !hasFile) {
@@ -83,13 +90,10 @@ public class MessageService {
             log.warn("Rejected message — channel {} does not exist", request.channelId());
             throw new IllegalArgumentException("Channel not found: " + request.channelId());
         }
-        if (!userRepository.existsById(request.userId())) {
-            log.warn("Rejected message — user {} does not exist", request.userId());
-            throw new IllegalArgumentException("User not found: " + request.userId());
+        if (!userRepository.existsById(currentUserId)) {
+            log.warn("Rejected message — user {} does not exist", currentUserId);
+            throw new IllegalArgumentException("User not found: " + currentUserId);
         }
-        if (!channelRepository.isMember(request.channelId(), request.userId())) {
-            log.warn("Rejected message — user {} is not a member of channel {}", request.userId(), request.channelId());
-            throw new IllegalArgumentException("User is not a member of this channel");
-        }
+        ensureChannelMember(request.channelId(), currentUserId);
     }
 }

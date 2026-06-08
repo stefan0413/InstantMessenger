@@ -5,6 +5,5 @@ import jakarta.validation.constraints.NotNull;
 
 public record MessageEditRequest(
         @NotNull long messageId,
-        @NotBlank String content,
-        @NotNull long userId
+        @NotBlank String content
 ) {}

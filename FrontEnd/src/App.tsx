@@ -96,7 +96,7 @@ function App() {
         });
       }
     });
-    socket.sendUserConnect(currentUserId);
+    socket.sendUserConnect();
     socketRef.current = socket;
 
     return () => socket.disconnect();
@@ -168,8 +168,8 @@ function App() {
   }, [typingUsers, activeChannelId, currentUserId]);
 
   const handleSendTyping = useCallback((channelId: string, isTyping: boolean) => {
-    socketRef.current?.sendTyping({ userId: currentUserId, channelId, typing: isTyping });
-  }, [currentUserId]);
+    socketRef.current?.sendTyping({ channelId, typing: isTyping });
+  }, []);
   const usersForCreation = useMemo(() => {
     const byId = new Map<string, User>();
     [...availableUsers, ...scopedUsers].forEach((candidate) => {
@@ -201,7 +201,7 @@ function App() {
     setAvailableUsersError(null);
 
     try {
-      const users = await searchUsers({ currentUserId, limit: 25 });
+      const users = await searchUsers({ limit: 25 });
       setAvailableUsers(users);
     } catch {
       setAvailableUsers([]);
@@ -284,7 +284,6 @@ function App() {
 
     const wasSent = socketRef.current.sendMessage({
       content: text,
-      userId: currentUserId,
       channelId: activeChannel.id,
       fileUrl,
       fileName,
