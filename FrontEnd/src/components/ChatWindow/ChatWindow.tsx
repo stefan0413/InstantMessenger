@@ -5,6 +5,7 @@ import { searchMessages } from "../../services/searchService";
 import type { Channel } from "../../types/channel";
 import type { Message } from "../../types/message";
 import type { User } from "../../types/user";
+import { formatMessageDateLabel, shouldShowDateSeparator } from "../../utils/dateFormat";
 import { MessageBubble } from "../MessageBubble/MessageBubble";
 import { SearchBar } from "../SearchBar/SearchBar";
 import "./ChatWindow.css";
@@ -194,14 +195,25 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
         ) : messagesToRender.length === 0 ? (
           <div className="chat-window__no-messages">No messages yet</div>
         ) : (
-          messagesToRender.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              sender={users.find((user) => user.id === message.senderId)}
-              highlight={isSearchActive ? searchQuery : undefined}
-            />
-          ))
+          messagesToRender.map((message, index) => {
+            const previousMessage = messagesToRender[index - 1];
+            const showDateSeparator = shouldShowDateSeparator(message.createdAt, previousMessage?.createdAt);
+
+            return (
+              <div className="chat-window__message-row" key={message.id}>
+                {showDateSeparator && (
+                  <div className="chat-window__date-separator">
+                    <time dateTime={message.createdAt}>{formatMessageDateLabel(message.createdAt)}</time>
+                  </div>
+                )}
+                <MessageBubble
+                  message={message}
+                  sender={users.find((user) => user.id === message.senderId)}
+                  highlight={isSearchActive ? searchQuery : undefined}
+                />
+              </div>
+            );
+          })
         )}
         <div ref={messagesEndRef} />
       </section>

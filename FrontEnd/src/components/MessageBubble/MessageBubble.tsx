@@ -1,18 +1,12 @@
 import type { Message } from "../../types/message";
 import type { User } from "../../types/user";
+import { formatMessageTime } from "../../utils/dateFormat";
 import "./MessageBubble.css";
 
 interface MessageBubbleProps {
   message: Message;
   sender?: User;
   highlight?: string;
-}
-
-function formatMessageTime(value: string): string {
-  return new Intl.DateTimeFormat("en", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }
 
 /**

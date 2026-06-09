@@ -1,5 +1,6 @@
 import type { Channel } from "../../types/channel";
 import type { User } from "../../types/user";
+import { formatChannelTimestamp } from "../../utils/dateFormat";
 import "./ChannelItem.css";
 
 interface ChannelItemProps {
@@ -9,13 +10,6 @@ interface ChannelItemProps {
   onSelect: (channelId: string) => void;
   currentUserId: string;
   onlineUserIds: Set<string>;
-}
-
-function formatTime(value: string): string {
-  return new Intl.DateTimeFormat("en", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }
 
 export function ChannelItem({ channel, users, isActive, onSelect, currentUserId, onlineUserIds }: ChannelItemProps) {
@@ -43,7 +37,9 @@ export function ChannelItem({ channel, users, isActive, onSelect, currentUserId,
       <div className="channel-item__content">
         <div className="channel-item__topline">
           <span className="channel-item__name">{channel.name}</span>
-          <time className="channel-item__time">{formatTime(channel.updatedAt)}</time>
+          <time className="channel-item__time" title={new Date(channel.updatedAt).toLocaleString()}>
+            {formatChannelTimestamp(channel.updatedAt)}
+          </time>
         </div>
         <div className="channel-item__bottomline">
           <span className="channel-item__last">{channel.lastMessage}</span>
