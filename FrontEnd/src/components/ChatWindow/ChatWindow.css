@@ -225,16 +225,20 @@
 }
 
 .chat-window__attach-btn {
+  align-items: center;
   background: #f1f5f9;
-  border: 1px solid #e5e7eb;
-  border-radius: 50%;
+  border: 0px solid #e5e7eb;
+  border-radius: 10%;
   color: #6b7280;
   cursor: pointer;
+  display: inline-flex;
   flex: 0 0 auto;
-  font-size: 18px;
+  font-size: 28px;
   height: 44px;
+  justify-content: center;
   line-height: 1;
   padding: 0;
+  text-indent: -0px;
   transition: background 160ms ease;
   width: 44px;
 }

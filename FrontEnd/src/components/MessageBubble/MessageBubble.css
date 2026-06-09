@@ -88,7 +88,7 @@
   border-radius: 10px;
   color: inherit;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 4px;
   padding: 8px 12px;
   text-decoration: none;
@@ -100,7 +100,8 @@
 
 .message-bubble__file-icon {
   flex: 0 0 auto;
-  font-size: 20px;
+  font-size: 30px;
+  line-height: 1;
 }
 
 .message-bubble__file-name {
