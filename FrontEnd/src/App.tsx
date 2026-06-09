@@ -97,11 +97,16 @@ function App() {
         });
       }
     });
-    socket.sendUserConnect();
     socketRef.current = socket;
 
     return () => socket.disconnect();
   }, [isAuthenticated, currentUserId]);
+
+  useEffect(() => {
+    if (socketStatus === "connected") {
+      socketRef.current?.sendUserConnect();
+    }
+  }, [socketStatus]);
 
   useEffect(() => {
     const socket = socketRef.current;

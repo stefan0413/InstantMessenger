@@ -1,8 +1,5 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.MessageDeleteRequest;
-import org.instantmessenger.backend.DTO.MessageEditEvent;
-import org.instantmessenger.backend.DTO.MessageEditRequest;
 import org.instantmessenger.backend.DTO.MessageRequest;
 import org.instantmessenger.backend.Model.Message;
 import org.instantmessenger.backend.Repository.ChannelRepository;
@@ -67,27 +64,6 @@ public class MessageService {
         messagingService.broadcast(message);
 
         log.info("Message {} processed and broadcast to channel {}", id, request.channelId());
-    }
-
-    public void editMessage(MessageEditRequest request, long currentUserId) {
-        var message = messageRepository.getByIdOrElseThrow(request.messageId());
-        if (message.userId() != currentUserId) {
-            throw new IllegalArgumentException("Cannot edit another user's message");
-        }
-        messageRepository.update(request.messageId(), request.content());
-        messagingService.broadcastEdit(message.channelId(),
-                new MessageEditEvent(request.messageId(), message.channelId(), request.content()));
-        log.info("Message {} edited by user {}", request.messageId(), currentUserId);
-    }
-
-    public void deleteMessage(MessageDeleteRequest request, long currentUserId) {
-        var message = messageRepository.getByIdOrElseThrow(request.messageId());
-        if (message.userId() != currentUserId) {
-            throw new IllegalArgumentException("Cannot delete another user's message");
-        }
-        messageRepository.delete(request.messageId());
-        messagingService.broadcastDelete(message.channelId(), request.messageId());
-        log.info("Message {} deleted by user {}", request.messageId(), currentUserId);
     }
 
     private void validateMessageRequest(MessageRequest request, long currentUserId) {

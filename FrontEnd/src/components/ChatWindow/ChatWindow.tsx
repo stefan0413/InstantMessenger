@@ -36,8 +36,11 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevScrollHeightRef = useRef<number>(0);
+  const isLoadingOlderRef = useRef<boolean>(false);
 
   useEffect(() => {
     setSearchQuery("");
@@ -81,7 +84,13 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
     : [];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView();
+    if (isLoadingOlderRef.current && messagesContainerRef.current) {
+      const newScrollHeight = messagesContainerRef.current.scrollHeight;
+      messagesContainerRef.current.scrollTop = newScrollHeight - prevScrollHeightRef.current;
+      isLoadingOlderRef.current = false;
+    } else {
+      messagesEndRef.current?.scrollIntoView();
+    }
   }, [activeChannel?.id, activeChannel?.messages.length]);
 
   const isSearchActive = searchQuery.trim().length > 0;
@@ -176,12 +185,18 @@ export function ChatWindow({ activeChannel, users, currentUserId, socketStatus, 
         isSearching={isSearching}
       />
 
-      <section className="chat-window__messages" aria-label={`${activeChannel.name} messages`}>
+      <section ref={messagesContainerRef} className="chat-window__messages" aria-label={`${activeChannel.name} messages`}>
         {!isSearchActive && activeChannel.hasMoreMessages && (
           <button
             className="chat-window__load-older"
             disabled={activeChannel.isLoadingMessages}
-            onClick={() => onLoadOlder(activeChannel.id)}
+            onClick={() => {
+              if (messagesContainerRef.current) {
+                prevScrollHeightRef.current = messagesContainerRef.current.scrollHeight;
+                isLoadingOlderRef.current = true;
+              }
+              onLoadOlder(activeChannel.id);
+            }}
             type="button"
           >
             {activeChannel.isLoadingMessages ? "Loading..." : "Load older messages"}

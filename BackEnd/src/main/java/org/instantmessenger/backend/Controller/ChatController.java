@@ -46,20 +46,6 @@ public class ChatController {
         messageService.processAndBroadcast(request, currentUserId);
     }
 
-    @MessageMapping("/chat.edit")
-    public void editMessage(@Payload MessageEditRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        long currentUserId = AuthenticatedUser.from(headerAccessor);
-        log.info("Edit request for message {} by user {}", request.messageId(), currentUserId);
-        messageService.editMessage(request, currentUserId);
-    }
-
-    @MessageMapping("/chat.delete")
-    public void deleteMessage(@Payload MessageDeleteRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        long currentUserId = AuthenticatedUser.from(headerAccessor);
-        log.info("Delete request for message {} by user {}", request.messageId(), currentUserId);
-        messageService.deleteMessage(request, currentUserId);
-    }
-
     @MessageMapping("/chat.typing")
     public void typing(@Payload TypingEvent event, SimpMessageHeaderAccessor headerAccessor) {
         long currentUserId = AuthenticatedUser.from(headerAccessor);

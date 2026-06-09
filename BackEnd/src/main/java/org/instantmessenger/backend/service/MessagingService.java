@@ -2,7 +2,6 @@ package org.instantmessenger.backend.service;
 
 import org.instantmessenger.backend.DTO.ChannelEvent;
 import org.instantmessenger.backend.DTO.ChannelResponse;
-import org.instantmessenger.backend.DTO.MessageEditEvent;
 import org.instantmessenger.backend.DTO.PresenceEvent;
 import org.instantmessenger.backend.DTO.TypingEvent;
 import org.instantmessenger.backend.Model.Message;
@@ -10,8 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 public class MessagingService {
@@ -31,18 +28,6 @@ public class MessagingService {
         var destination = String.format(CHANNEL_TOPIC, message.channelId());
         log.debug("Broadcasting MESSAGE_NEW {} to {}", message.id(), destination);
         messagingTemplate.convertAndSend(destination, new ChannelEvent("MESSAGE_NEW", message));
-    }
-
-    public void broadcastEdit(long channelId, MessageEditEvent event) {
-        var destination = String.format(CHANNEL_TOPIC, channelId);
-        log.debug("Broadcasting MESSAGE_EDIT {} to {}", event.messageId(), destination);
-        messagingTemplate.convertAndSend(destination, new ChannelEvent("MESSAGE_EDIT", event));
-    }
-
-    public void broadcastDelete(long channelId, long messageId) {
-        var destination = String.format(CHANNEL_TOPIC, channelId);
-        log.debug("Broadcasting MESSAGE_DELETE {} to {}", messageId, destination);
-        messagingTemplate.convertAndSend(destination, new ChannelEvent("MESSAGE_DELETE", Map.of("messageId", messageId)));
     }
 
     public void broadcastTyping(TypingEvent event) {

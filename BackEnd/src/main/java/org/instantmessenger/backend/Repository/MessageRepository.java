@@ -98,19 +98,4 @@ public class MessageRepository {
         return keyHolder.getKey().longValue();
     }
 
-    public void update(long id, String content) {
-        jdbc.update(
-                "UPDATE messages SET content = :content WHERE id = :id",
-                new MapSqlParameterSource()
-                        .addValue("id", id)
-                        .addValue("content", content)
-        );
-    }
-
-    public void delete(long id) {
-        jdbc.update(
-                "DELETE FROM messages WHERE id = :id",
-                new MapSqlParameterSource("id", id)
-        );
-    }
 }
