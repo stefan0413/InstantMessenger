@@ -41,6 +41,8 @@ function decodeFrames(chunk: string): Array<{ command: string; headers: Record<s
     });
 }
 
+const MAX_RECONNECT_DELAY_MS = 30_000;
+
 export class ChatSocketClient {
   private socket?: WebSocket;
   private handlers = new Map<string, EventHandler>();
@@ -48,7 +50,12 @@ export class ChatSocketClient {
   private connected = false;
   private pendingFrames: string[] = [];
   private subscriptionIds = new Set<string>();
+  // persists across reconnects so we can re-subscribe after reconnection
+  private destinationToSubId = new Map<string, string>();
   private statusHandler?: StatusHandler;
+  private reconnectAttempts = 0;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
+  private intentionalDisconnect = false;
 
   connect(onStatus?: StatusHandler): void {
     if (this.socket && this.socket.readyState <= WebSocket.OPEN) {
@@ -57,7 +64,10 @@ export class ChatSocketClient {
 
     this.statusHandler = onStatus;
     this.statusHandler?.("connecting");
+    this.createSocket();
+  }
 
+  private createSocket(): void {
     this.socket = new WebSocket(WS_URL);
 
     this.socket.addEventListener("open", () => {
@@ -74,8 +84,9 @@ export class ChatSocketClient {
       for (const frame of decodeFrames(String(event.data))) {
         if (frame.command === "CONNECTED") {
           this.connected = true;
+          this.reconnectAttempts = 0;
           this.statusHandler?.("connected");
-          this.flush();
+          this.resubscribeAndFlush();
           continue;
         }
 
@@ -101,18 +112,52 @@ export class ChatSocketClient {
       this.connected = false;
       this.subscriptionIds.clear();
       this.statusHandler?.("disconnected");
+      if (!this.intentionalDisconnect) {
+        this.scheduleReconnect();
+      }
+      this.intentionalDisconnect = false;
     });
 
     this.socket.addEventListener("error", () => {
       this.connected = false;
       this.statusHandler?.("error");
+      // close event fires next and will schedule reconnect
     });
+  }
+
+  private resubscribeAndFlush(): void {
+    for (const [destination, subId] of this.destinationToSubId) {
+      if (!this.subscriptionIds.has(subId)) {
+        this.socket?.send(encodeFrame("SUBSCRIBE", { id: subId, destination }));
+        this.subscriptionIds.add(subId);
+      }
+    }
+
+    while (this.pendingFrames.length > 0 && this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(this.pendingFrames.shift()!);
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer !== undefined) {
+      return;
+    }
+    const delay = Math.min(1_000 * Math.pow(2, this.reconnectAttempts), MAX_RECONNECT_DELAY_MS);
+    this.reconnectAttempts++;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined;
+      if (!this.connected) {
+        this.statusHandler?.("connecting");
+        this.createSocket();
+      }
+    }, delay);
   }
 
   subscribeToChannel(channelId: string, handler: EventHandler): void {
     const destination = `/topic/channel/${channelId}`;
     this.handlers.set(destination, handler);
     const id = `channel-${channelId}`;
+    this.destinationToSubId.set(destination, id);
 
     if (!this.subscriptionIds.has(id)) {
       this.sendFrame(encodeFrame("SUBSCRIBE", { id, destination }));
@@ -142,6 +187,7 @@ export class ChatSocketClient {
     const destination = `/topic/user/${userId}`;
     this.handlers.set(destination, handler);
     const id = `user-${userId}`;
+    this.destinationToSubId.set(destination, id);
     if (!this.subscriptionIds.has(id)) {
       this.sendFrame(encodeFrame("SUBSCRIBE", { id, destination }));
       this.subscriptionIds.add(id);
@@ -150,9 +196,12 @@ export class ChatSocketClient {
 
   subscribeToPresence(handler: (event: PresenceEvent) => void): void {
     this.presenceHandler = handler;
-    if (!this.subscriptionIds.has("sub-presence")) {
-      this.sendFrame(encodeFrame("SUBSCRIBE", { id: "sub-presence", destination: "/topic/presence" }));
-      this.subscriptionIds.add("sub-presence");
+    const destination = "/topic/presence";
+    const id = "sub-presence";
+    this.destinationToSubId.set(destination, id);
+    if (!this.subscriptionIds.has(id)) {
+      this.sendFrame(encodeFrame("SUBSCRIBE", { id, destination }));
+      this.subscriptionIds.add(id);
     }
   }
 
@@ -180,13 +229,21 @@ export class ChatSocketClient {
   }
 
   disconnect(): void {
+    this.intentionalDisconnect = true;
+    if (this.reconnectTimer !== undefined) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
     if (this.socket?.readyState === WebSocket.OPEN) {
       this.socket.send(encodeFrame("DISCONNECT"));
       this.socket.close();
     }
     this.connected = false;
     this.handlers.clear();
+    this.destinationToSubId.clear();
     this.subscriptionIds.clear();
+    this.pendingFrames = [];
+    this.reconnectAttempts = 0;
   }
 
   private sendFrame(frame: string): boolean {
@@ -197,11 +254,5 @@ export class ChatSocketClient {
 
     this.pendingFrames.push(frame);
     return false;
-  }
-
-  private flush(): void {
-    while (this.pendingFrames.length > 0 && this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(this.pendingFrames.shift()!);
-    }
   }
 }
