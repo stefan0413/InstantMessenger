@@ -27,6 +27,10 @@ public class AuthService {
         String username = request.username().trim();
         String email = request.email().trim().toLowerCase();
 
+        if (!request.password().equals(request.confirmPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passwords do not match");
+        }
+
         if (userRepository.existsByUsername(username)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already taken");
         }

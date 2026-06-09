@@ -13,16 +13,6 @@ export default function LoginForm() {
     e.preventDefault();
     setError("");
 
-    if (!email.includes("@")) {
-      setError("Enter a valid email address");
-      return;
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -46,7 +36,8 @@ export default function LoginForm() {
       <label className="auth-form__field">
         <span>Email</span>
         <input
-          type="email"
+          type="text"
+          inputMode="email"
           placeholder="test@test.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
