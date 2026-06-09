@@ -54,7 +54,7 @@ public class MessageRepository {
         return result.stream().findFirst();
     }
 
-    public long save(MessageRequest request) {
+    public long save(MessageRequest request, long userId) {
         var sql = """
             INSERT INTO messages (content, user_id, channel_id, file_url, file_name)
             VALUES (:content, :userId, :channelId, :fileUrl, :fileName)
@@ -62,7 +62,7 @@ public class MessageRepository {
 
         var params = new MapSqlParameterSource()
                 .addValue("content", request.content())
-                .addValue("userId", request.userId())
+                .addValue("userId", userId)
                 .addValue("channelId", request.channelId())
                 .addValue("fileUrl", request.fileUrl())
                 .addValue("fileName", request.fileName());

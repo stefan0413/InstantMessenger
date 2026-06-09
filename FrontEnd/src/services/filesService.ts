@@ -1,4 +1,4 @@
-import { apiUrl } from "./apiConfig";
+import { apiUrl, authHeaders } from "./apiConfig";
 
 interface PresignedUrlResponse {
   presignedUrl: string;
@@ -11,7 +11,10 @@ export async function uploadFile(file: File): Promise<{ publicUrl: string; fileN
     contentType: file.type || "application/octet-stream",
   });
 
-  const response = await fetch(apiUrl(`/files/presigned-url?${params}`), { method: "POST" });
+  const response = await fetch(apiUrl(`/files/presigned-url?${params}`), {
+    method: "POST",
+    headers: authHeaders(),
+  });
   if (!response.ok) {
     throw new Error("Could not get upload URL");
   }

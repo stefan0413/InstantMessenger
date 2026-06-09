@@ -38,7 +38,7 @@ export default function RegisterForm() {
     setIsSubmitting(true);
 
     try {
-      await register({ username: username.trim(), email: email.trim(), password });
+      await register({ username: username.trim(), email: email.trim(), password, confirmPassword });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Registration failed. Please try again.");
     } finally {

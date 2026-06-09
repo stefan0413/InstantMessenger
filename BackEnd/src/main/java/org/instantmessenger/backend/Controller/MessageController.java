@@ -1,6 +1,8 @@
 package org.instantmessenger.backend.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.instantmessenger.backend.Model.Message;
+import org.instantmessenger.backend.config.AuthenticatedUser;
 import org.instantmessenger.backend.service.MessageService;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +22,9 @@ public class MessageController {
     public List<Message> getMessages(
             @RequestParam Long channelId,
             @RequestParam(defaultValue = "50") int limit,
-            @RequestParam(required = false) Long before
+            @RequestParam(required = false) Long before,
+            HttpServletRequest request
     ) {
-        return messageService.getByChannelId(channelId, limit, before);
+        return messageService.getByChannelId(channelId, AuthenticatedUser.from(request), limit, before);
     }
 }

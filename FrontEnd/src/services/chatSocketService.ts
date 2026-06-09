@@ -1,5 +1,5 @@
 import type { ChannelEvent } from "./messagesService";
-import { WS_URL } from "./apiConfig";
+import { getAuthToken, WS_URL } from "./apiConfig";
 
 type EventHandler = (event: ChannelEvent) => void;
 type StatusHandler = (status: "connecting" | "connected" | "disconnected" | "error") => void;
@@ -10,7 +10,6 @@ export interface PresenceEvent {
 }
 
 export interface TypingPayload {
-  userId: string;
   channelId: string;
   typing: boolean;
 }
@@ -62,10 +61,12 @@ export class ChatSocketClient {
     this.socket = new WebSocket(WS_URL);
 
     this.socket.addEventListener("open", () => {
+      const token = getAuthToken();
       this.socket?.send(encodeFrame("CONNECT", {
         "accept-version": "1.2",
         host: new URL(WS_URL).host,
         "heart-beat": "0,0",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       }));
     });
 
@@ -119,7 +120,7 @@ export class ChatSocketClient {
     }
   }
 
-  sendMessage(payload: { content: string; userId: string; channelId: string; fileUrl?: string; fileName?: string }): boolean {
+  sendMessage(payload: { content: string; channelId: string; fileUrl?: string; fileName?: string }): boolean {
     return this.sendFrame(
       encodeFrame(
         "SEND",
@@ -129,7 +130,6 @@ export class ChatSocketClient {
         },
         JSON.stringify({
           content: payload.content || null,
-          userId: Number(payload.userId),
           channelId: Number(payload.channelId),
           fileUrl: payload.fileUrl ?? null,
           fileName: payload.fileName ?? null,
@@ -162,7 +162,6 @@ export class ChatSocketClient {
         "SEND",
         { destination: "/app/chat.typing", "content-type": "application/json" },
         JSON.stringify({
-          userId: Number(payload.userId),
           channelId: Number(payload.channelId),
           typing: payload.typing,
         }),
@@ -170,12 +169,12 @@ export class ChatSocketClient {
     );
   }
 
-  sendUserConnect(userId: string): void {
+  sendUserConnect(): void {
     this.sendFrame(
       encodeFrame(
         "SEND",
         { destination: "/app/user.connect", "content-type": "application/json" },
-        JSON.stringify({ userId: Number(userId) }),
+        "{}",
       ),
     );
   }

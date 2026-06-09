@@ -1,6 +1,6 @@
 import type { Channel } from "../types/channel";
 import type { User } from "../types/user";
-import { apiUrl } from "./apiConfig";
+import { apiUrl, authHeaders } from "./apiConfig";
 
 export interface BackendUser {
   id: number;
@@ -60,7 +60,9 @@ export function mapBackendChannel(channel: BackendChannel, currentUserId?: strin
 }
 
 export async function getChannels(currentUserId: string): Promise<Channel[]> {
-  const response = await fetch(apiUrl(`/channels?userId=${encodeURIComponent(currentUserId)}`));
+  const response = await fetch(apiUrl("/channels"), {
+    headers: authHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error("Could not load channels");
@@ -71,11 +73,11 @@ export async function getChannels(currentUserId: string): Promise<Channel[]> {
 }
 
 export async function createChannel(payload: { name: string; memberIds: string[]; currentUserId: string }): Promise<Channel> {
-  const response = await fetch(apiUrl(`/channels?userId=${encodeURIComponent(payload.currentUserId)}`), {
+  const response = await fetch(apiUrl("/channels"), {
     method: "POST",
-    headers: {
+    headers: authHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({
       name: payload.name,
       memberIds: payload.memberIds.map(Number),

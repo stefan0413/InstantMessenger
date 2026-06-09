@@ -1,5 +1,5 @@
 import { mapBackendUser } from "./channelsService";
-import { apiUrl } from "./apiConfig";
+import { apiUrl, authHeaders } from "./apiConfig";
 import type { User } from "../types/user";
 
 interface BackendUser {
@@ -9,17 +9,17 @@ interface BackendUser {
 }
 
 export async function searchUsers(params: {
-  currentUserId: string;
   query?: string;
   limit?: number;
 }): Promise<User[]> {
   const query = new URLSearchParams({
-    excludeUserId: params.currentUserId,
     query: params.query ?? "",
     limit: String(params.limit ?? 25),
   });
 
-  const response = await fetch(apiUrl(`/users?${query}`));
+  const response = await fetch(apiUrl(`/users?${query}`), {
+    headers: authHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error("Could not load users");

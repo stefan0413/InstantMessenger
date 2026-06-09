@@ -1,8 +1,10 @@
 package org.instantmessenger.backend.Controller;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import org.instantmessenger.backend.DTO.ChannelRequest;
 import org.instantmessenger.backend.DTO.ChannelResponse;
+import org.instantmessenger.backend.config.AuthenticatedUser;
 import org.instantmessenger.backend.service.ChannelService;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +21,12 @@ public class ChannelController {
     }
 
     @GetMapping
-    public List<ChannelResponse> getAll(@RequestParam long userId) {
-        return channelService.getForUser(userId);
+    public List<ChannelResponse> getAll(HttpServletRequest request) {
+        return channelService.getForUser(AuthenticatedUser.from(request));
     }
 
     @PostMapping
-    public ChannelResponse create(@Valid @RequestBody ChannelRequest request, @RequestParam long userId) {
-        return channelService.create(request, userId);
+    public ChannelResponse create(@Valid @RequestBody ChannelRequest channelRequest, HttpServletRequest request) {
+        return channelService.create(channelRequest, AuthenticatedUser.from(request));
     }
 }
