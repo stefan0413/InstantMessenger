@@ -39,6 +39,16 @@ public class MessageService {
         return messageRepository.findByChannelId(channelId, Math.min(limit, 100), before);
     }
 
+    public List<Message> searchByChannel(Long channelId, String query, long currentUserId, int limit) {
+        ensureChannelMember(channelId, currentUserId);
+
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+
+        return messageRepository.searchByChannel(channelId, query.trim(), Math.min(limit, 100));
+    }
+
     public void ensureChannelMember(long channelId, long currentUserId) {
         if (!channelRepository.isMember(channelId, currentUserId)) {
             throw new IllegalArgumentException("User is not a member of this channel");
