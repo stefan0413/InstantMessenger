@@ -5,9 +5,9 @@ import org.instantmessenger.backend.DTO.ChannelEvent;
 import org.instantmessenger.backend.DTO.MessageRequest;
 import org.instantmessenger.backend.DTO.PresenceEvent;
 import org.instantmessenger.backend.DTO.TypingEvent;
-import org.instantmessenger.backend.DTO.UserConnectRequest;
 import org.instantmessenger.backend.DTO.WebSocketErrorResponse;
 import org.instantmessenger.backend.Model.Message;
+import org.instantmessenger.backend.config.AuthenticatedUser;
 import org.instantmessenger.backend.service.MessageService;
 import org.instantmessenger.backend.service.MessagingService;
 import org.instantmessenger.backend.service.PresenceService;
@@ -23,6 +23,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,32 +40,39 @@ class ChatControllerTest {
     @Mock SimpMessagingTemplate messagingTemplate;
     @InjectMocks ChatController controller;
 
+    private static SimpMessageHeaderAccessor accessorWithUser(long userId) {
+        var accessor = mock(SimpMessageHeaderAccessor.class);
+        when(accessor.getSessionAttributes()).thenReturn(Map.of(AuthenticatedUser.ATTRIBUTE, userId));
+        return accessor;
+    }
+
     @Test
     void sendMessage_delegatesToMessageService() {
-        var request = new MessageRequest("hello", 1L, 10L, null, null);
+        var request = new MessageRequest("hello", 10L, null, null);
+        var accessor = accessorWithUser(1L);
 
-        controller.sendMessage(request);
+        controller.sendMessage(request, accessor);
 
-        verify(messageService).processAndBroadcast(request);
+        verify(messageService).processAndBroadcast(request, 1L);
     }
 
     @Test
     void typing_broadcastsViaMessagingService() {
         var event = new TypingEvent(1L, 10L, true);
+        var accessor = accessorWithUser(1L);
 
-        controller.typing(event);
+        controller.typing(event, accessor);
 
-        verify(messagingService).broadcastTyping(event);
+        verify(messagingService).broadcastTyping(new TypingEvent(1L, 10L, true));
     }
 
     @Test
     void onUserConnect_registersPresenceAndBroadcastsAllOnlineUsers() {
-        var request = new UserConnectRequest(7L);
-        var accessor = mock(SimpMessageHeaderAccessor.class);
+        var accessor = accessorWithUser(7L);
         when(accessor.getSessionId()).thenReturn("session-abc");
         when(presenceService.getOnlineUserIds()).thenReturn(Set.of(7L, 8L));
 
-        controller.onUserConnect(request, accessor);
+        controller.onUserConnect(accessor);
 
         verify(presenceService).register("session-abc", 7L);
         var captor = ArgumentCaptor.forClass(PresenceEvent.class);
@@ -75,12 +83,11 @@ class ChatControllerTest {
 
     @Test
     void onUserConnect_withSingleOnlineUser_broadcastsOnlySelf() {
-        var request = new UserConnectRequest(3L);
-        var accessor = mock(SimpMessageHeaderAccessor.class);
+        var accessor = accessorWithUser(3L);
         when(accessor.getSessionId()).thenReturn("session-xyz");
         when(presenceService.getOnlineUserIds()).thenReturn(Set.of(3L));
 
-        controller.onUserConnect(request, accessor);
+        controller.onUserConnect(accessor);
 
         verify(presenceService).register("session-xyz", 3L);
         var captor = ArgumentCaptor.forClass(PresenceEvent.class);
@@ -93,9 +100,10 @@ class ChatControllerTest {
     void onChannelSubscribe_returnsHistoryWrappedAsMessageNewEvents() {
         var msg1 = new Message(1L, "hi", 1L, 10L, LocalDateTime.now(), null, null);
         var msg2 = new Message(2L, "hey", 2L, 10L, LocalDateTime.now(), null, null);
-        when(messageService.getByChannelId(10L, 50, null)).thenReturn(List.of(msg1, msg2));
+        var accessor = accessorWithUser(1L);
+        when(messageService.getByChannelId(10L, 1L, 50, null)).thenReturn(List.of(msg1, msg2));
 
-        List<ChannelEvent> result = controller.onChannelSubscribe(10L);
+        List<ChannelEvent> result = controller.onChannelSubscribe(10L, accessor);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).type()).isEqualTo("MESSAGE_NEW");
@@ -106,9 +114,10 @@ class ChatControllerTest {
 
     @Test
     void onChannelSubscribe_withNoMessages_returnsEmptyList() {
-        when(messageService.getByChannelId(99L, 50, null)).thenReturn(List.of());
+        var accessor = accessorWithUser(1L);
+        when(messageService.getByChannelId(99L, 1L, 50, null)).thenReturn(List.of());
 
-        List<ChannelEvent> result = controller.onChannelSubscribe(99L);
+        List<ChannelEvent> result = controller.onChannelSubscribe(99L, accessor);
 
         assertThat(result).isEmpty();
     }
