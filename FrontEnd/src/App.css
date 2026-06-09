@@ -357,18 +357,19 @@ input {
 
   .app-shell {
     grid-template-columns: 1fr;
-    height: auto;
-    min-height: calc(100vh - 20px);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: calc(100dvh - 92px);
     margin: 10px;
+    min-height: 560px;
   }
 
   .channel-list {
     border-bottom: 1px solid #e5e7eb;
     border-right: 0;
-    max-height: 420px;
+    max-height: min(70dvh, 420px);
   }
 
   .chat-window {
-    min-height: 560px;
+    min-height: 0;
   }
 }

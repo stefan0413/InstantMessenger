@@ -7,9 +7,11 @@ interface ChannelListProps {
   channels: Channel[];
   users: User[];
   activeChannelId?: string;
+  isMenuOpen: boolean;
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSelectChannel: (channelId: string) => void;
+  onToggleMenu: () => void;
   onNewChatClick: () => void;
   onNewGroupClick: () => void;
   currentUserId: string;
@@ -20,21 +22,31 @@ export function ChannelList({
   channels,
   users,
   activeChannelId,
+  isMenuOpen,
   searchValue,
   onSearchChange,
   onSelectChannel,
+  onToggleMenu,
   onNewChatClick,
   onNewGroupClick,
   currentUserId,
   onlineUserIds,
 }: ChannelListProps) {
   return (
-    <aside className="channel-list">
+    <aside className={`channel-list ${isMenuOpen ? "channel-list--open" : ""}`}>
       <div className="channel-list__header">
         <div>
           <p className="channel-list__eyebrow">Inbox</p>
           <h1>Messages</h1>
         </div>
+        <button
+          aria-expanded={isMenuOpen}
+          className="channel-list__toggle"
+          onClick={onToggleMenu}
+          type="button"
+        >
+          {isMenuOpen ? "Hide chats" : "Chats"}
+        </button>
         <div className="channel-list__actions">
           <button className="channel-list__new" onClick={onNewChatClick} type="button">
             New chat

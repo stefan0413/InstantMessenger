@@ -50,6 +50,7 @@ function App() {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [typingUsers, setTypingUsers] = useState<Record<string, Set<string>>>({});
+  const [isChannelMenuOpen, setIsChannelMenuOpen] = useState(false);
   const socketRef = useRef<ChatSocketClient | null>(null);
   const currentUserId = user ? String(user.id) : "";
 
@@ -277,6 +278,11 @@ function App() {
     void loadMessages(channelId, oldestMessageId);
   }
 
+  function handleSelectChannel(channelId: string): void {
+    setActiveChannelId(channelId);
+    setIsChannelMenuOpen(false);
+  }
+
   function handleSendMessage(text: string, fileUrl?: string, fileName?: string): void {
     if (!activeChannel || !socketRef.current || !currentUserId) {
       return;
@@ -422,9 +428,11 @@ function App() {
           channels={filteredChannels}
           users={scopedUsers}
           activeChannelId={activeChannelId}
+          isMenuOpen={isChannelMenuOpen}
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
-          onSelectChannel={setActiveChannelId}
+          onSelectChannel={handleSelectChannel}
+          onToggleMenu={() => setIsChannelMenuOpen((current) => !current)}
           onNewChatClick={() => void openDirectModal()}
           onNewGroupClick={() => void openGroupModal()}
           currentUserId={currentUserId}

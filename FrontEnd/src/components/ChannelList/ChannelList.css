@@ -22,6 +22,10 @@
   gap: 8px;
 }
 
+.channel-list__toggle {
+  display: none;
+}
+
 .channel-list__eyebrow {
   color: #818cf8;
   font-size: 12px;
@@ -122,7 +126,31 @@
 
   .channel-list__header {
     align-items: center;
+    flex-wrap: wrap;
     margin-bottom: 12px;
+  }
+
+  .channel-list__toggle {
+    background: #111827;
+    border: 0;
+    border-radius: 12px;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 9px 11px;
+  }
+
+  .channel-list:not(.channel-list--open) {
+    padding-bottom: 12px;
+  }
+
+  .channel-list:not(.channel-list--open) .channel-list__actions,
+  .channel-list:not(.channel-list--open) .channel-list__search,
+  .channel-list:not(.channel-list--open) .channel-list__items {
+    display: none;
   }
 
   .channel-list h1 {
@@ -141,11 +169,11 @@
 
 @media (max-width: 420px) {
   .channel-list__header {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
   }
 
   .channel-list__actions {
+    order: 3;
     width: 100%;
   }
 
