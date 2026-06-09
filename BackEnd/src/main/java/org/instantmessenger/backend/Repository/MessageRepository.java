@@ -41,6 +41,32 @@ public class MessageRepository {
         return result;
     }
 
+    public List<Message> searchByChannel(Long channelId, String query, int limit) {
+        var params = new MapSqlParameterSource()
+                .addValue("channelId", channelId)
+                .addValue("pattern", "%" + escapeLike(query) + "%")
+                .addValue("limit", limit);
+
+        var sql = """
+            SELECT * FROM messages
+            WHERE channel_id = :channelId
+              AND content ILIKE :pattern ESCAPE '\\'
+            ORDER BY id DESC
+            LIMIT :limit
+        """;
+
+        var result = new ArrayList<>(jdbc.query(sql, params, ROW_MAPPER));
+        Collections.reverse(result);
+        return result;
+    }
+
+    private static String escapeLike(String input) {
+        return input
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+    }
+
     public Message getByIdOrElseThrow(long id) {
         return getById(id).orElseThrow(() -> new IllegalArgumentException("Message not found: " + id));
     }
