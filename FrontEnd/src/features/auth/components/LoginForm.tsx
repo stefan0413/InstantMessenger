@@ -36,9 +36,8 @@ export default function LoginForm() {
       <label className="auth-form__field">
         <span>Email</span>
         <input
-          type="text"
-          inputMode="email"
-          placeholder="test@test.com"
+          type="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -48,7 +47,7 @@ export default function LoginForm() {
         <span>Password</span>
         <input
           type="password"
-          placeholder="123456"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

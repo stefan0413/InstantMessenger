@@ -2,7 +2,7 @@ package org.instantmessenger.backend.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.repository.UserRepository;
 import org.instantmessenger.backend.service.JwtService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;

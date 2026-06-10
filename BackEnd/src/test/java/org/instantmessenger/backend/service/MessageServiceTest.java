@@ -1,10 +1,10 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.MessageRequest;
-import org.instantmessenger.backend.Model.Message;
-import org.instantmessenger.backend.Repository.ChannelRepository;
-import org.instantmessenger.backend.Repository.MessageRepository;
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.dto.MessageRequest;
+import org.instantmessenger.backend.model.Message;
+import org.instantmessenger.backend.repository.ChannelRepository;
+import org.instantmessenger.backend.repository.MessageRepository;
+import org.instantmessenger.backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,8 +25,6 @@ class MessageServiceTest {
     @Mock UserRepository userRepository;
     @Mock MessagingService messagingService;
     @InjectMocks MessageService messageService;
-
-    // --- processAndBroadcast ---
 
     @Test
     void processAndBroadcast_savesMessageAndBroadcasts() {
@@ -119,8 +117,6 @@ class MessageServiceTest {
 
         verifyNoInteractions(messagingService);
     }
-
-    // --- getByChannelId ---
 
     @Test
     void getByChannelId_capsLimitAt100() {

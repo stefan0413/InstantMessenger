@@ -21,22 +21,24 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-useEffect(() => {
-  const savedUser = localStorage.getItem("user");
-  const savedToken = localStorage.getItem("token");
 
-  if (savedUser && savedToken) {
-    setUser(JSON.parse(savedUser));
-    setToken(savedToken);
-  }
-}, []);
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    const savedToken = localStorage.getItem("token");
+
+    if (savedUser && savedToken) {
+      setUser(JSON.parse(savedUser));
+      setToken(savedToken);
+    }
+  }, []);
+
   async function login(credentials: LoginCredentials) {
     const data = await loginRequest(credentials);
 
     setUser(data.user);
     setToken(data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
-localStorage.setItem("token", data.token);
+    localStorage.setItem("token", data.token);
   }
 
   async function register(credentials: RegisterCredentials) {
@@ -52,7 +54,7 @@ localStorage.setItem("token", data.token);
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");
-localStorage.removeItem("token");
+    localStorage.removeItem("token");
   }
 
   return (

@@ -1,6 +1,5 @@
 package org.instantmessenger.backend.repository;
 
-import org.instantmessenger.backend.Repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

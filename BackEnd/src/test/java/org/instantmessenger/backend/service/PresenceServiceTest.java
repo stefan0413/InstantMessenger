@@ -1,6 +1,6 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

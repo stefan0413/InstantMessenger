@@ -52,7 +52,3 @@ build/
 .env.local
 application-local.properties
 application-local.yml
-
-
-# AI
-.claude/

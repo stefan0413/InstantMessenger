@@ -50,7 +50,6 @@ export class ChatSocketClient {
   private connected = false;
   private pendingFrames: string[] = [];
   private subscriptionIds = new Set<string>();
-  // persists across reconnects so we can re-subscribe after reconnection
   private destinationToSubId = new Map<string, string>();
   private statusHandler?: StatusHandler;
   private reconnectAttempts = 0;
@@ -121,7 +120,6 @@ export class ChatSocketClient {
     this.socket.addEventListener("error", () => {
       this.connected = false;
       this.statusHandler?.("error");
-      // close event fires next and will schedule reconnect
     });
   }
 

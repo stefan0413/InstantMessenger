@@ -1,7 +1,7 @@
 package org.instantmessenger.backend.config;
 
-import org.instantmessenger.backend.Repository.ChannelRepository;
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.repository.ChannelRepository;
+import org.instantmessenger.backend.repository.UserRepository;
 import org.instantmessenger.backend.service.JwtService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;

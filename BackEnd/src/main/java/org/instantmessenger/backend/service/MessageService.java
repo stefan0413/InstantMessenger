@@ -1,10 +1,10 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.MessageRequest;
-import org.instantmessenger.backend.Model.Message;
-import org.instantmessenger.backend.Repository.ChannelRepository;
-import org.instantmessenger.backend.Repository.MessageRepository;
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.dto.MessageRequest;
+import org.instantmessenger.backend.model.Message;
+import org.instantmessenger.backend.repository.ChannelRepository;
+import org.instantmessenger.backend.repository.MessageRepository;
+import org.instantmessenger.backend.repository.UserRepository;
 
 import java.util.List;
 import org.slf4j.Logger;
