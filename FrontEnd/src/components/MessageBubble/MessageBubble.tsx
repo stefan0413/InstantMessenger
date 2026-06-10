@@ -9,17 +9,12 @@ interface MessageBubbleProps {
   highlight?: string;
 }
 
-/**
- * Splits the text into segments where the matching parts are
- * wrapped in <mark> tags for visual highlighting. Case-insensitive.
- */
 function renderHighlighted(text: string, query: string) {
   const trimmed = query.trim();
   if (!trimmed) {
     return text;
   }
 
-  // Escape regex special characters in the user input
   const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const regex = new RegExp(`(${escaped})`, "gi");
   const parts = text.split(regex);

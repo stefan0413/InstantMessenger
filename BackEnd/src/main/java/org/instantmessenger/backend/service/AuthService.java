@@ -1,10 +1,10 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.AuthResponse;
-import org.instantmessenger.backend.DTO.LoginRequest;
-import org.instantmessenger.backend.DTO.RegisterRequest;
-import org.instantmessenger.backend.Model.User;
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.dto.AuthResponse;
+import org.instantmessenger.backend.dto.LoginRequest;
+import org.instantmessenger.backend.dto.RegisterRequest;
+import org.instantmessenger.backend.model.User;
+import org.instantmessenger.backend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

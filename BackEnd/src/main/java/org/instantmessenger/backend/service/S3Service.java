@@ -1,6 +1,6 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.PresignedUrlResponse;
+import org.instantmessenger.backend.dto.PresignedUrlResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

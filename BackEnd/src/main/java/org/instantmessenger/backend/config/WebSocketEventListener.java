@@ -1,6 +1,6 @@
 package org.instantmessenger.backend.config;
 
-import org.instantmessenger.backend.DTO.PresenceEvent;
+import org.instantmessenger.backend.dto.PresenceEvent;
 import org.instantmessenger.backend.service.MessagingService;
 import org.instantmessenger.backend.service.PresenceService;
 import org.slf4j.Logger;

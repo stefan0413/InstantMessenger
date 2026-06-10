@@ -1,10 +1,10 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.ChannelRequest;
-import org.instantmessenger.backend.DTO.ChannelResponse;
-import org.instantmessenger.backend.DTO.UserView;
-import org.instantmessenger.backend.Repository.ChannelRepository;
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.dto.ChannelRequest;
+import org.instantmessenger.backend.dto.ChannelResponse;
+import org.instantmessenger.backend.dto.UserView;
+import org.instantmessenger.backend.repository.ChannelRepository;
+import org.instantmessenger.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,10 +42,15 @@ public class ChannelService {
 
     public List<ChannelResponse> getForUser(long userId) {
         var channels = channelRepository.findByMemberId(userId);
-        Map<Long, List<Long>> memberIds = channelRepository.findAllMemberIds();
-        Map<Long, List<UserView>> membersByChannel = userRepository.findByChannelIds(
-                        channels.stream().map(c -> c.id()).toList()
-                ).entrySet().stream()
+        if (channels.isEmpty()) {
+            return List.of();
+        }
+
+        var channelIds = channels.stream().map(c -> c.id()).toList();
+
+        Map<Long, List<Long>> memberIds = channelRepository.findMemberIdsForChannels(channelIds);
+        Map<Long, List<UserView>> membersByChannel = userRepository.findByChannelIds(channelIds)
+                .entrySet().stream()
                 .collect(java.util.stream.Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> entry.getValue().stream()

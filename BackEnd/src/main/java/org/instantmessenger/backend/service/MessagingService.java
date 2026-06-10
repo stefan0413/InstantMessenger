@@ -1,10 +1,10 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.ChannelEvent;
-import org.instantmessenger.backend.DTO.ChannelResponse;
-import org.instantmessenger.backend.DTO.PresenceEvent;
-import org.instantmessenger.backend.DTO.TypingEvent;
-import org.instantmessenger.backend.Model.Message;
+import org.instantmessenger.backend.dto.ChannelEvent;
+import org.instantmessenger.backend.dto.ChannelResponse;
+import org.instantmessenger.backend.dto.PresenceEvent;
+import org.instantmessenger.backend.dto.TypingEvent;
+import org.instantmessenger.backend.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

@@ -1,10 +1,10 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.DTO.ChannelEvent;
-import org.instantmessenger.backend.DTO.ChannelResponse;
-import org.instantmessenger.backend.DTO.PresenceEvent;
-import org.instantmessenger.backend.DTO.TypingEvent;
-import org.instantmessenger.backend.Model.Message;
+import org.instantmessenger.backend.dto.ChannelEvent;
+import org.instantmessenger.backend.dto.ChannelResponse;
+import org.instantmessenger.backend.dto.PresenceEvent;
+import org.instantmessenger.backend.dto.TypingEvent;
+import org.instantmessenger.backend.model.Message;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

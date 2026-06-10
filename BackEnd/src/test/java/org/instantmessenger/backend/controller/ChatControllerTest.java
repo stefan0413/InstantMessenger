@@ -1,12 +1,11 @@
 package org.instantmessenger.backend.controller;
 
-import org.instantmessenger.backend.Controller.ChatController;
-import org.instantmessenger.backend.DTO.ChannelEvent;
-import org.instantmessenger.backend.DTO.MessageRequest;
-import org.instantmessenger.backend.DTO.PresenceEvent;
-import org.instantmessenger.backend.DTO.TypingEvent;
-import org.instantmessenger.backend.DTO.WebSocketErrorResponse;
-import org.instantmessenger.backend.Model.Message;
+import org.instantmessenger.backend.dto.ChannelEvent;
+import org.instantmessenger.backend.dto.MessageRequest;
+import org.instantmessenger.backend.dto.PresenceEvent;
+import org.instantmessenger.backend.dto.TypingEvent;
+import org.instantmessenger.backend.dto.WebSocketErrorResponse;
+import org.instantmessenger.backend.model.Message;
 import org.instantmessenger.backend.config.AuthenticatedUser;
 import org.instantmessenger.backend.service.MessageService;
 import org.instantmessenger.backend.service.MessagingService;

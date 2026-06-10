@@ -4,10 +4,6 @@ import type {
   RegisterCredentials,
 } from "../types";
 
-import { mockLogin, mockRegister } from "../services/mockAuthService";
-
-const USE_MOCK = false;
-
 async function parseAuthResponse(response: Response): Promise<AuthResponse> {
   if (!response.ok) {
     let backendMessage: string | undefined;
@@ -56,19 +52,11 @@ async function authFetch(path: string, credentials: LoginCredentials | RegisterC
 export async function loginRequest(
   credentials: LoginCredentials
 ): Promise<AuthResponse> {
-  if (USE_MOCK) {
-    return mockLogin(credentials);
-  }
-
   return authFetch("/api/auth/login", credentials);
 }
 
 export async function registerRequest(
   credentials: RegisterCredentials
 ): Promise<AuthResponse> {
-  if (USE_MOCK) {
-    return mockRegister(credentials);
-  }
-
   return authFetch("/api/auth/register", credentials);
 }

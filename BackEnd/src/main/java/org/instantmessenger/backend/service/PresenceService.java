@@ -1,6 +1,6 @@
 package org.instantmessenger.backend.service;
 
-import org.instantmessenger.backend.Repository.UserRepository;
+import org.instantmessenger.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
