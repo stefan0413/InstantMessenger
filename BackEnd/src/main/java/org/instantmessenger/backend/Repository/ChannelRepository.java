@@ -28,7 +28,6 @@ public class ChannelRepository {
                 ROW_MAPPER
         );
     }
-
     public List<Channel> findByMemberId(long userId) {
         return jdbc.query(
                 """
