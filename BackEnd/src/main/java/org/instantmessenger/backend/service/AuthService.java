@@ -10,17 +10,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.UUID;
+
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final EmailService emailService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       JwtService jwtService, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.emailService = emailService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -41,6 +46,11 @@ public class AuthService {
 
         String passwordHash = passwordEncoder.encode(request.password());
         User user = userRepository.create(username, email, passwordHash);
+
+        String token = UUID.randomUUID().toString();
+        userRepository.saveVerificationToken(user.id(), token);
+        emailService.sendVerificationEmail(email, username, token);
+
         return AuthResponse.from(user, jwtService.createToken(user.id(), user.email()));
     }
 
@@ -54,5 +64,16 @@ public class AuthService {
         }
 
         return AuthResponse.from(user, jwtService.createToken(user.id(), user.email()));
+    }
+
+    public void verifyEmail(String token) {
+        User user = userRepository.findByVerificationToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired verification token"));
+
+        if (user.emailVerified()) {
+            return;
+        }
+
+        userRepository.markEmailVerified(user.id());
     }
 }

@@ -92,6 +92,14 @@ public class ChannelRepository {
         );
     }
 
+    public java.util.Optional<Channel> findById(long id) {
+        return jdbc.query(
+                "SELECT * FROM channels WHERE id = :id",
+                new MapSqlParameterSource("id", id),
+                ROW_MAPPER
+        ).stream().findFirst();
+    }
+
     public boolean existsById(Long id) {
         Integer count = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM channels WHERE id = :id",

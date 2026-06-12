@@ -14,7 +14,8 @@ public class UserRowMapper implements RowMapper<User> {
                 rs.getLong("id"),
                 rs.getString("username"),
                 rs.getString("email"),
-                rs.getString("password_hash")
+                rs.getString("password_hash"),
+                rs.getBoolean("email_verified")
         );
     }
 }

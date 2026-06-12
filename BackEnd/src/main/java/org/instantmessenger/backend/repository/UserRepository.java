@@ -154,6 +154,28 @@ public class UserRepository {
         );
 
         long id = keyHolder.getKey().longValue();
-        return new User(id, username, email, passwordHash);
+        return new User(id, username, email, passwordHash, false);
+    }
+
+    public void saveVerificationToken(long userId, String token) {
+        jdbc.update(
+                "UPDATE users SET verification_token = :token WHERE id = :id",
+                new MapSqlParameterSource().addValue("token", token).addValue("id", userId)
+        );
+    }
+
+    public Optional<User> findByVerificationToken(String token) {
+        return jdbc.query(
+                "SELECT * FROM users WHERE verification_token = :token",
+                new MapSqlParameterSource("token", token),
+                ROW_MAPPER
+        ).stream().findFirst();
+    }
+
+    public void markEmailVerified(long userId) {
+        jdbc.update(
+                "UPDATE users SET email_verified = TRUE, verification_token = NULL WHERE id = :id",
+                new MapSqlParameterSource("id", userId)
+        );
     }
 }

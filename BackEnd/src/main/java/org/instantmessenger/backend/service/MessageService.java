@@ -2,11 +2,14 @@ package org.instantmessenger.backend.service;
 
 import org.instantmessenger.backend.dto.MessageRequest;
 import org.instantmessenger.backend.model.Message;
+import org.instantmessenger.backend.model.User;
 import org.instantmessenger.backend.repository.ChannelRepository;
 import org.instantmessenger.backend.repository.MessageRepository;
 import org.instantmessenger.backend.repository.UserRepository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,15 +23,21 @@ public class MessageService {
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final MessagingService messagingService;
+    private final PresenceService presenceService;
+    private final EmailService emailService;
 
     public MessageService(MessageRepository messageRepository,
                           ChannelRepository channelRepository,
                           UserRepository userRepository,
-                          MessagingService messagingService) {
+                          MessagingService messagingService,
+                          PresenceService presenceService,
+                          EmailService emailService) {
         this.messageRepository = messageRepository;
         this.channelRepository = channelRepository;
         this.userRepository = userRepository;
         this.messagingService = messagingService;
+        this.presenceService = presenceService;
+        this.emailService = emailService;
     }
 
     public List<Message> getByChannelId(Long channelId, long currentUserId, int limit, Long before) {
@@ -64,6 +73,38 @@ public class MessageService {
         messagingService.broadcast(message);
 
         log.info("Message {} processed and broadcast to channel {}", id, request.channelId());
+
+        notifyOfflineMembers(message, currentUserId);
+    }
+
+    private void notifyOfflineMembers(Message message, long senderId) {
+        try {
+            Map<Long, List<User>> membersByChannel = userRepository.findByChannelIds(List.of(message.channelId()));
+            List<User> members = membersByChannel.getOrDefault(message.channelId(), List.of());
+
+            Set<Long> onlineIds = presenceService.getOnlineUserIds();
+
+            String senderUsername = members.stream()
+                    .filter(u -> u.id() == senderId)
+                    .map(User::username)
+                    .findFirst()
+                    .orElse("Someone");
+
+            String channelName = channelRepository.findById(message.channelId())
+                    .map(c -> c.name())
+                    .orElse("a channel");
+
+            String preview = message.content() != null
+                    ? (message.content().length() > 100 ? message.content().substring(0, 100) + "…" : message.content())
+                    : "[file attachment]";
+
+            members.stream()
+                    .filter(u -> u.id() != senderId)
+                    .filter(u -> !onlineIds.contains(u.id()))
+                    .forEach(u -> emailService.sendMessageNotification(u.email(), senderUsername, channelName, preview));
+        } catch (Exception e) {
+            log.error("Failed to send message notifications for message {}: {}", message.id(), e.getMessage());
+        }
     }
 
     private void validateMessageRequest(MessageRequest request, long currentUserId) {

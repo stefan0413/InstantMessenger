@@ -13,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,6 +26,8 @@ class MessageServiceTest {
     @Mock ChannelRepository channelRepository;
     @Mock UserRepository userRepository;
     @Mock MessagingService messagingService;
+    @Mock PresenceService presenceService;
+    @Mock EmailService emailService;
     @InjectMocks MessageService messageService;
 
     @Test
@@ -35,6 +39,8 @@ class MessageServiceTest {
         when(channelRepository.isMember(10L, 1L)).thenReturn(true);
         when(messageRepository.save(request, 1L)).thenReturn(42L);
         when(messageRepository.getByIdOrElseThrow(42L)).thenReturn(saved);
+        when(userRepository.findByChannelIds(List.of(10L))).thenReturn(Map.of());
+        when(presenceService.getOnlineUserIds()).thenReturn(Set.of());
 
         messageService.processAndBroadcast(request, 1L);
 
@@ -51,6 +57,8 @@ class MessageServiceTest {
         when(channelRepository.isMember(10L, 1L)).thenReturn(true);
         when(messageRepository.save(request, 1L)).thenReturn(43L);
         when(messageRepository.getByIdOrElseThrow(43L)).thenReturn(saved);
+        when(userRepository.findByChannelIds(List.of(10L))).thenReturn(Map.of());
+        when(presenceService.getOnlineUserIds()).thenReturn(Set.of());
 
         messageService.processAndBroadcast(request, 1L);
 
