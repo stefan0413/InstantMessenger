@@ -22,7 +22,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/api/auth/**", "/ws", "/ws/**", "/ws-native", "/ws-native/**", "/swagger-ui/**", "/v3/api-docs/**");
+                .excludePathPatterns("/api/auth/**", "/ws", "/ws/**", "/ws-native", "/ws-native/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/swagger-ui/**");
     }
 
     @Override

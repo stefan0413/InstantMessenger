@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.ses.SesClient;
 @Configuration
 public class SesConfig {
 
-    @Value("${aws.ses.region}")
+    @Value("${aws.ses.region:eu-central-1}")
     private String region;
 
     @Value("${aws.ses.access-key:}")

@@ -83,6 +83,7 @@ public class MessageService {
             List<User> members = membersByChannel.getOrDefault(message.channelId(), List.of());
 
             Set<Long> onlineIds = presenceService.getOnlineUserIds();
+            log.debug("Notify offline: channel={} members={} online={}", message.channelId(), members.stream().map(User::id).toList(), onlineIds);
 
             String senderUsername = members.stream()
                     .filter(u -> u.id() == senderId)
@@ -101,7 +102,10 @@ public class MessageService {
             members.stream()
                     .filter(u -> u.id() != senderId)
                     .filter(u -> !onlineIds.contains(u.id()))
-                    .forEach(u -> emailService.sendMessageNotification(u.email(), senderUsername, channelName, preview));
+                    .forEach(u -> {
+                        log.info("Sending email notification to offline user {} ({})", u.username(), u.email());
+                        emailService.sendMessageNotification(u.email(), senderUsername, channelName, preview);
+                    });
         } catch (Exception e) {
             log.error("Failed to send message notifications for message {}: {}", message.id(), e.getMessage());
         }

@@ -12,6 +12,8 @@ spring:
 logging:
   level:
     org.instantmessenger.backend: DEBUG
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
 
 app:
   jwt:
@@ -24,12 +26,12 @@ app:
 aws:
   s3:
     bucket: ${AWS_S3_BUCKET:your-messenger-bucket}
-    region: ${AWS_REGION:eu-central-1}
+    region: ${AWS_S3_REGION:eu-north-1}
     access-key: ${AWS_ACCESS_KEY_ID:}
     secret-key: ${AWS_SECRET_ACCESS_KEY:}
     presigned-url-expiry-minutes: 5
   ses:
-    region: ${AWS_REGION:eu-central-1}
+    region: ${AWS_SES_REGION:eu-central-1}
     from-email: ${SES_FROM_EMAIL:noreply@instant-messenger.info}
     access-key: ${AWS_ACCESS_KEY_ID:}
     secret-key: ${AWS_SECRET_ACCESS_KEY:}
